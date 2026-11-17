@@ -67,7 +67,7 @@ export const MODES: Record<ActivityId, Mode> = {
     ],
     status: 'En mission',
     focus: {
-      title: 'Les prestations en vogue',
+      title: 'Nos prestations',
       text: 'Techniques ou artistiques, chaque mission est préparée, pilotée et livrée par la même équipe.',
       more: { label: 'Toutes les prestations', href: ACTIVITIES.prestations.href },
     },
