@@ -1,0 +1,75 @@
+---
+// Forgotten password: a one-time link by e-mail, which signs in and asks for a new
+// password. The answer is the same whether the e-mail has an account or not.
+import AccountLayout from '../../layouts/AccountLayout.astro';
+import { createSignInLink, findUser, isEmail, normEmail, sendResetLink } from '../../lib/server/auth';
+
+export const prerender = false;
+
+let sentTo = '';
+let shownLink: string | undefined;
+let error: string | null = null;
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const email = normEmail(String(form.get('email') ?? ''));
+  if (!isEmail(email)) error = 'Cette adresse e-mail ne semble pas valide.';
+  else {
+    const user = await findUser(email);
+    if (user) ({ shownLink } = await sendResetLink(email, await createSignInLink(user, Astro.url.origin)));
+    sentTo = email;
+  }
+}
+---
+
+<AccountLayout title="Mot de passe oublié" kicker="Espace client" error={error}>
+  <div class="acc-card max-w-xl">
+    {
+      sentTo ? (
+        <>
+          <p>
+            Si un compte existe pour <strong>{sentTo}</strong>, un lien pour choisir un nouveau mot de passe vient de lui être envoyé. Il est valable 20 minutes.
+          </p>
+          {shownLink && (
+            <p class="dev-link">
+              <span class="hud-text">Développement : aucun e-mail n’est envoyé en local.</span>
+              <a class="acc-btn" href={shownLink}>
+                Ouvrir le lien
+              </a>
+            </p>
+          )}
+        </>
+      ) : (
+        <form method="post" class="acc-grid !grid-cols-1">
+          <p>Indiquez votre adresse : nous vous envoyons un lien pour choisir un nouveau mot de passe.</p>
+          <label class="acc-field">
+            Adresse e-mail
+            <input type="email" name="email" required autocomplete="username" inputmode="email" autofocus />
+          </label>
+          <div>
+            <button type="submit" class="acc-btn">
+              Recevoir le lien
+            </button>
+          </div>
+        </form>
+      )
+    }
+    <p class="mt-5"><a class="acc-link" href="/connexion/">← Retour à la connexion</a></p>
+  </div>
+</AccountLayout>
+
+<style>
+  .dev-link {
+    display: grid;
+    justify-items: start;
+    gap: 10px;
+    margin-top: 20px;
+    padding: 16px;
+    background: #fff8ec;
+    border: 1px dashed var(--color-gold);
+  }
+  .dev-link span {
+    font-size: 12px;
+    color: var(--color-gold-deep);
+  }
+</style>

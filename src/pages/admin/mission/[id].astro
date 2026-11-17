@@ -1,0 +1,218 @@
+---
+// One mission in the admin: edit its date, place, terms and status, upload deliverables
+// (several files at once, stored in R2), delete them, or delete the mission.
+import AccountLayout from '../../../layouts/AccountLayout.astro';
+import { db, type User } from '../../../lib/server/auth';
+import { back, filesOf, isDate, oneOf, removeFile, storeFile, text } from '../../../lib/server/admin';
+import { MISSION_STATUS, deliverableUrl, formatDate, formatSize, type Deliverable, type Mission, type MissionStatus } from '../../../lib/account';
+import { SERVICES } from '../../../data/services';
+
+export const prerender = false;
+
+const id = Number(Astro.params.id);
+const mission = Number.isInteger(id) ? await db().prepare('SELECT * FROM missions WHERE id = ?').bind(id).first<Mission>() : null;
+if (!mission) return new Response('Mission introuvable', { status: 404 });
+const client = (await db().prepare('SELECT * FROM users WHERE id = ?').bind(mission.user_id).first<User>())!;
+
+const MISSION_KEYS = Object.keys(MISSION_STATUS) as MissionStatus[];
+const self = `/admin/mission/${mission.id}/`;
+let error: string | null = null;
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const action = text(form, 'action');
+
+  if (action === 'edit') {
+    const title = text(form, 'title', 200);
+    const date = text(form, 'date');
+    if (!title || !isDate(date)) error = 'Une mission a besoin d’un titre et d’une date.';
+    else {
+      await db()
+        .prepare('UPDATE missions SET title = ?, service = ?, mission_on = ?, place = ?, details = ?, status = ? WHERE id = ?')
+        .bind(title, text(form, 'service', 120), date, text(form, 'place', 300), text(form, 'details', 5000), oneOf(text(form, 'status'), MISSION_KEYS, mission.status), mission.id)
+        .run();
+      return Astro.redirect(back(self, 'Mission enregistrée.'));
+    }
+  }
+
+  if (action === 'upload') {
+    const list = filesOf(form, 'files');
+    if (!list.length) error = 'Choisissez au moins un fichier.';
+    else {
+      for (const file of list) {
+        const key = await storeFile(`livrables/${mission.id}`, file);
+        await db()
+          .prepare('INSERT INTO deliverables (mission_id, name, file_key, size, content_type) VALUES (?, ?, ?, ?, ?)')
+          .bind(mission.id, file.name.slice(0, 200), key, file.size, file.type || 'application/octet-stream')
+          .run();
+      }
+      // First deliverables: the client sees the mission as delivered.
+      if (form.get('mark_delivered')) await db().prepare("UPDATE missions SET status = 'livree' WHERE id = ?").bind(mission.id).run();
+      return Astro.redirect(back(self, list.length > 1 ? `${list.length} livrables ajoutés.` : 'Livrable ajouté.'));
+    }
+  }
+
+  if (action === 'delete_file') {
+    const row = await db().prepare('DELETE FROM deliverables WHERE id = ? AND mission_id = ? RETURNING file_key').bind(Number(text(form, 'ref')), mission.id).first<{ file_key: string }>();
+    if (row) await removeFile(row.file_key);
+    return Astro.redirect(back(self, 'Livrable supprimé.'));
+  }
+
+  if (action === 'delete_mission') {
+    const keys = await db().prepare('SELECT file_key FROM deliverables WHERE mission_id = ?').bind(mission.id).all<{ file_key: string }>();
+    await Promise.all(keys.results.map((k) => removeFile(k.file_key)));
+    await db().prepare('DELETE FROM missions WHERE id = ?').bind(mission.id).run();
+    return Astro.redirect(back(`/admin/client/${client.id}/`, 'Mission supprimée.'));
+  }
+}
+
+const deliverables = await db().prepare('SELECT * FROM deliverables WHERE mission_id = ? ORDER BY created_at, id').bind(mission.id).all<Deliverable>();
+---
+
+<AccountLayout title={mission.title} kicker={`Administration · ${client.name || client.email}`} error={error}>
+  <p class="mt-4 acc-row">
+    <a class="acc-link" href={`/admin/client/${client.id}/`}>← Fiche de {client.name || client.email}</a>
+    <a class="acc-link" href={`/compte/mission/${mission.id}/`}>Voir comme le client</a>
+  </p>
+
+  <div class="acc-card">
+    <h2 class="acc-h2">Livrables</h2>
+    <p class="acc-sub">Photos, vidéos, rapports, modèles 3D… Le client les télécharge depuis son espace.</p>
+    {
+      deliverables.results.length ? (
+        <table class="acc-table">
+          <thead>
+            <tr>
+              <th>Fichier</th>
+              <th class="num">Taille</th>
+              <th>Ajouté le</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {deliverables.results.map((d) => (
+              <tr>
+                <td>
+                  <a class="acc-link" href={deliverableUrl(d)}>
+                    {d.name}
+                  </a>
+                </td>
+                <td class="num" data-label="Taille">
+                  {formatSize(d.size)}
+                </td>
+                <td data-label="Ajouté le">{formatDate(d.created_at)}</td>
+                <td>
+                  <form method="post" data-confirm={`Supprimer ${d.name} ?`}>
+                    <input type="hidden" name="action" value="delete_file" />
+                    <input type="hidden" name="ref" value={d.id} />
+                    <button type="submit" class="acc-btn danger">
+                      Supprimer
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <p class="acc-empty">Aucun livrable pour le moment.</p>
+      )
+    }
+    <form method="post" enctype="multipart/form-data" class="acc-grid acc-add-form">
+      <input type="hidden" name="action" value="upload" />
+      <label class="acc-field full">
+        Ajouter des fichiers
+        <input type="file" name="files" multiple required />
+      </label>
+      {
+        mission.status !== 'livree' && (
+          <label class="check full">
+            <input type="checkbox" name="mark_delivered" value="1" checked />
+            Passer la mission en « {MISSION_STATUS.livree} »
+          </label>
+        )
+      }
+      <div class="full">
+        <button type="submit" class="acc-btn">Envoyer</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="acc-card">
+    <h2 class="acc-h2">La mission</h2>
+    <form method="post" class="acc-grid">
+      <input type="hidden" name="action" value="edit" />
+      <label class="acc-field">
+        Titre
+        <input name="title" required value={mission.title} />
+      </label>
+      <label class="acc-field">
+        Prestation
+        <select name="service">
+          <option value="">—</option>
+          {
+            SERVICES.map((s) => {
+              const slug = s.href.replace(/^\/|\/$/g, '');
+              return (
+                <option value={slug} selected={slug === mission.service}>
+                  {s.label}
+                </option>
+              );
+            })
+          }
+        </select>
+      </label>
+      <label class="acc-field">
+        Date
+        <input type="date" name="date" required value={mission.mission_on} />
+      </label>
+      <label class="acc-field">
+        Lieu
+        <input name="place" value={mission.place} />
+      </label>
+      <label class="acc-field full">
+        Modalités
+        <textarea name="details">{mission.details}</textarea>
+      </label>
+      <label class="acc-field">
+        Statut
+        <select name="status">
+          {
+            MISSION_KEYS.map((k) => (
+              <option value={k} selected={k === mission.status}>
+                {MISSION_STATUS[k]}
+              </option>
+            ))
+          }
+        </select>
+      </label>
+      <div class="full">
+        <button type="submit" class="acc-btn">Enregistrer</button>
+      </div>
+    </form>
+    <form method="post" class="mt-6" data-confirm="Supprimer cette mission et tous ses livrables ?">
+      <input type="hidden" name="action" value="delete_mission" />
+      <button type="submit" class="acc-btn danger">Supprimer la mission</button>
+    </form>
+  </div>
+</AccountLayout>
+
+<style>
+  .acc-add-form {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--color-line);
+  }
+  .check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    font-weight: 600;
+  }
+  .check input {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--color-ink);
+  }
+</style>

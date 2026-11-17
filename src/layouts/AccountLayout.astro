@@ -1,0 +1,397 @@
+---
+// Layout of the account area: the site's header and footer, a bar with who is signed in,
+// the area's tabs and the sign-out button, then the page. Never indexed.
+// Form and table styles for /connexion/, /compte/ and /admin/ live here (.acc-*).
+import BaseLayout from './BaseLayout.astro';
+import Square from '../components/ui/Square.astro';
+import { ROLE_LABEL } from '../lib/account';
+
+interface Props {
+  title: string;
+  /** Small line above the title. */
+  kicker?: string;
+  /** Message after an action (?ok=…). */
+  notice?: string | null;
+  error?: string | null;
+}
+const { title, kicker, notice = Astro.url.searchParams.get('ok'), error } = Astro.props;
+const user = Astro.locals.user;
+const path = Astro.url.pathname;
+const tabs = !user
+  ? []
+  : user.role === 'admin'
+    ? [
+        { href: '/admin/', label: 'Clients' },
+        { href: '/compte/', label: 'Mon profil' },
+      ]
+    : [{ href: '/compte/', label: user.role === 'prestation' ? 'Mes prestations' : 'Mes commandes' }];
+// A client's single tab stays lit on their mission pages too.
+const current = (href: string) => (href === '/admin/' ? path.startsWith('/admin/') : user?.role !== 'admin' ? path.startsWith(href) : path === href);
+---
+
+<BaseLayout title={`${title} | Les Drones Lyonnais`} description="Espace client Les Drones Lyonnais." noindex>
+  <section class="acc">
+    {
+      user ? (
+        <div class="acc-top">
+          <div class="wrap acc-top-in">
+            <p class="acc-who">
+              <span class="acc-role hud-text">{ROLE_LABEL[user.role]}</span>
+              <span class="acc-name">{user.name || user.email}</span>
+            </p>
+            <nav class="acc-tabs" aria-label="Espace client">
+              {tabs.map((t) => (
+                <a href={t.href} aria-current={current(t.href) ? 'page' : undefined}>
+                  {t.label}
+                </a>
+              ))}
+              <form method="post" action="/connexion/sortie/">
+                <button type="submit" class="acc-out">
+                  Se déconnecter
+                </button>
+              </form>
+            </nav>
+          </div>
+        </div>
+      ) : (
+        <div class="acc-top-bare" />
+      )
+    }
+
+    <div class="wrap acc-body">
+      {kicker && <p class="acc-kicker hud-text">{kicker}</p>}
+      <h1 class="display acc-title flex items-start gap-4">
+        <Square color="var(--color-gold)" class="mt-[0.35em] size-3 shrink-0" />
+        {title}
+      </h1>
+      {notice && <p class="acc-notice" role="status">{notice}</p>}
+      {error && <p class="acc-error" role="alert">{error}</p>}
+      <slot />
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  // Destructive forms of the area ask first (data-confirm on the form).
+  document.querySelectorAll<HTMLFormElement>('form[data-confirm]').forEach((f) =>
+    f.addEventListener('submit', (e) => {
+      if (!confirm(f.dataset.confirm!)) e.preventDefault();
+    }),
+  );
+</script>
+
+<style>
+  .acc {
+    min-height: 70vh;
+    background: var(--color-mist);
+  }
+  .acc-top {
+    padding: 96px 0 0;
+    color: #fff;
+    background: var(--color-ink);
+  }
+  /* Signed out: just the room of the fixed header. */
+  .acc-top-bare {
+    height: 72px;
+  }
+  .acc-top-in {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px 32px;
+    padding-bottom: 0;
+  }
+  .acc-who {
+    display: grid;
+    gap: 4px;
+    padding-bottom: 18px;
+  }
+  .acc-role {
+    font-size: 12px;
+    color: var(--color-gold);
+  }
+  .acc-name {
+    font-size: 1.15rem;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+  .acc-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 4px;
+  }
+  .acc-tabs a,
+  .acc-out {
+    display: inline-flex;
+    align-items: center;
+    min-height: 46px;
+    padding: 0 16px;
+    font-size: 15px;
+    font-weight: 600;
+    color: rgb(255 255 255 / 0.7);
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    transition: color 150ms ease-out;
+  }
+  .acc-tabs a[aria-current='page'] {
+    color: #fff;
+    border-color: var(--color-gold);
+  }
+  @media (hover: hover) {
+    .acc-tabs a:hover,
+    .acc-out:hover {
+      color: #fff;
+    }
+  }
+  .acc-body {
+    padding-block: 40px 96px;
+  }
+  .acc-kicker {
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: var(--color-muted);
+  }
+  .acc-title {
+    font-size: clamp(1.8rem, 3.4vw, 2.6rem);
+    overflow-wrap: anywhere;
+  }
+  .acc-notice,
+  .acc-error {
+    margin-top: 20px;
+    padding: 12px 16px;
+    font-weight: 600;
+    border-left: 4px solid var(--color-formations);
+    background: #fff;
+  }
+  .acc-error {
+    border-color: #c0392b;
+  }
+
+  /* ---------- Shared blocks of the area ---------- */
+  .acc :global(.acc-card) {
+    margin-top: 28px;
+    padding: 24px;
+    background: #fff;
+    border: 1px solid var(--color-line);
+  }
+  .acc :global(.acc-h2) {
+    font-size: 1.25rem;
+    font-weight: 700;
+    font-stretch: 112%;
+  }
+  .acc :global(.acc-sub) {
+    margin-top: 4px;
+    color: var(--color-muted);
+  }
+  .acc :global(.acc-empty) {
+    margin-top: 14px;
+    color: var(--color-muted);
+  }
+  .acc :global(.acc-grid) {
+    display: grid;
+    gap: 14px 18px;
+    margin-top: 18px;
+  }
+  @media (min-width: 768px) {
+    .acc :global(.acc-grid) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .acc :global(.acc-grid .full) {
+      grid-column: 1 / -1;
+    }
+  }
+  .acc :global(label.acc-field) {
+    display: grid;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .acc :global(.acc-field input),
+  .acc :global(.acc-field select),
+  .acc :global(.acc-field textarea) {
+    width: 100%;
+    min-height: 46px;
+    padding: 10px 12px;
+    /* 16px: no zoom on focus on iOS. */
+    font-size: 16px;
+    font-weight: 400;
+    background: #fff;
+    border: 1px solid #c9c9c6;
+    border-radius: 0;
+  }
+  .acc :global(.acc-field textarea) {
+    min-height: 110px;
+    resize: vertical;
+  }
+  .acc :global(.acc-field input:focus-visible),
+  .acc :global(.acc-field select:focus-visible),
+  .acc :global(.acc-field textarea:focus-visible) {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 1px;
+  }
+  .acc :global(.acc-hint) {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--color-muted);
+  }
+  .acc :global(.acc-btn) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 46px;
+    padding: 0 20px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    background: var(--color-ink);
+    cursor: pointer;
+    transition:
+      background-color 150ms ease-out,
+      transform 150ms ease-out;
+  }
+  .acc :global(.acc-btn:active) {
+    transform: scale(0.97);
+  }
+  .acc :global(.acc-btn.light) {
+    color: var(--color-ink);
+    background: transparent;
+    border: 1px solid rgb(0 0 0 / 0.25);
+  }
+  .acc :global(.acc-btn.danger) {
+    min-height: 36px;
+    padding: 0 12px;
+    font-size: 13px;
+    color: #a3281b;
+    background: transparent;
+    border: 1px solid rgb(163 40 27 / 0.35);
+  }
+  @media (hover: hover) {
+    .acc :global(.acc-btn:hover) {
+      background: var(--color-ink-soft);
+    }
+    .acc :global(.acc-btn.light:hover),
+    .acc :global(.acc-btn.danger:hover) {
+      background: var(--color-mist);
+    }
+  }
+  .acc :global(.acc-btn:focus-visible),
+  .acc :global(.acc-link:focus-visible) {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 2px;
+  }
+  .acc :global(.acc-link) {
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* Tables become stacked cards on small screens. */
+  .acc :global(.acc-table) {
+    width: 100%;
+    margin-top: 14px;
+    border-collapse: collapse;
+    font-size: 15px;
+  }
+  .acc :global(.acc-table th) {
+    padding: 10px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-muted);
+    border-bottom: 1px solid var(--color-line);
+  }
+  .acc :global(.acc-table td) {
+    padding: 12px;
+    vertical-align: top;
+    border-bottom: 1px solid var(--color-line);
+    overflow-wrap: anywhere;
+  }
+  .acc :global(.acc-table .num) {
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  @media (max-width: 767px) {
+    .acc :global(.acc-table thead) {
+      display: none;
+    }
+    .acc :global(.acc-table tr) {
+      display: grid;
+      gap: 4px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--color-line);
+    }
+    .acc :global(.acc-table td) {
+      padding: 0;
+      border: 0;
+    }
+    .acc :global(.acc-table td[data-label])::before {
+      content: attr(data-label) ' : ';
+      font-weight: 600;
+      color: var(--color-muted);
+    }
+    .acc :global(.acc-table .num) {
+      text-align: left;
+    }
+  }
+  .acc :global(.acc-badge) {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    background: var(--color-mist);
+    border: 1px solid var(--color-line);
+  }
+  .acc :global(.acc-badge.ok) {
+    color: var(--color-formations);
+    border-color: color-mix(in oklab, var(--color-formations) 35%, transparent);
+  }
+  .acc :global(.acc-row) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+  }
+  .acc :global(.acc-split) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px 16px;
+  }
+  .acc :global(details.acc-add) {
+    margin-top: 18px;
+    border-top: 1px dashed var(--color-line);
+    padding-top: 14px;
+  }
+  .acc :global(details.acc-add > summary) {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-weight: 700;
+    cursor: pointer;
+    list-style: none;
+  }
+  .acc :global(details.acc-add > summary::-webkit-details-marker) {
+    display: none;
+  }
+  .acc :global(details.acc-add > summary::before) {
+    content: '+';
+    display: inline-grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+    color: #fff;
+    background: var(--color-gold);
+  }
+  .acc :global(details.acc-add[open] > summary::before) {
+    content: '−';
+  }
+</style>

@@ -1,0 +1,191 @@
+---
+// Admin home: every account (search, filter by role) and the form to add a client.
+// The admin gives the client a temporary password (suggested in the form); the client
+// replaces it with their own at the first sign-in.
+import AccountLayout from '../../layouts/AccountLayout.astro';
+import { MIN_PASSWORD, createUser, db, findUser, isEmail, normEmail, setPassword, temporaryPassword, type Role, type User } from '../../lib/server/auth';
+import { back, oneOf, text } from '../../lib/server/admin';
+import { ROLE_LABEL, formatDate } from '../../lib/account';
+
+export const prerender = false;
+
+const ROLES = ['boutique', 'prestation', 'admin'] as const;
+let error: string | null = null;
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const email = normEmail(text(form, 'email', 200));
+  const password = text(form, 'password', 200);
+  if (!isEmail(email)) error = 'Adresse e-mail invalide.';
+  else if (await findUser(email)) error = `Un compte existe déjà pour ${email}.`;
+  else if (password.length < MIN_PASSWORD) error = `Le mot de passe temporaire doit faire au moins ${MIN_PASSWORD} caractères.`;
+  else {
+    const user = await createUser(email, { name: text(form, 'name', 200), company: text(form, 'company', 200), phone: text(form, 'phone', 40), role: oneOf(text(form, 'role'), ROLES, 'boutique') });
+    await setPassword(user.id, password, true);
+    return Astro.redirect(back(`/admin/client/${user.id}/`, 'Client créé. Transmettez-lui son mot de passe temporaire : il en choisira un à sa première connexion.'));
+  }
+}
+
+const q = (Astro.url.searchParams.get('q') ?? '').trim();
+const role = Astro.url.searchParams.get('role') ?? '';
+const where: string[] = [];
+const args: (string | number)[] = [];
+if (q) {
+  where.push('(email LIKE ? OR name LIKE ? OR company LIKE ?)');
+  args.push(`%${q}%`, `%${q}%`, `%${q}%`);
+}
+if ((ROLES as readonly string[]).includes(role)) {
+  where.push('role = ?');
+  args.push(role);
+}
+const users = await db()
+  .prepare(
+    `SELECT u.*, (SELECT COUNT(*) FROM orders o WHERE o.user_id = u.id) AS orders,
+            (SELECT COUNT(*) FROM missions m WHERE m.user_id = u.id) AS missions
+     FROM users u ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
+     ORDER BY u.created_at DESC, u.id DESC LIMIT 200`,
+  )
+  .bind(...args)
+  .all<User & { orders: number; missions: number }>();
+const filters: { id: '' | Role; label: string }[] = [
+  { id: '', label: 'Tous' },
+  { id: 'boutique', label: 'Boutique' },
+  { id: 'prestation', label: 'Prestations' },
+  { id: 'admin', label: 'Administrateurs' },
+];
+const filterHref = (id: string) => `/admin/?${new URLSearchParams({ ...(q ? { q } : {}), ...(id ? { role: id } : {}) })}`;
+---
+
+<AccountLayout title="Clients" kicker="Administration" error={error}>
+  <div class="acc-card">
+    <div class="acc-split">
+      <form method="get" class="acc-row grow">
+        {role && <input type="hidden" name="role" value={role} />}
+        <label class="acc-field grow">
+          <span class="sr-only">Rechercher un client</span>
+          <input type="search" name="q" value={q} placeholder="Nom, société ou e-mail" />
+        </label>
+        <button class="acc-btn light" type="submit">Rechercher</button>
+      </form>
+    </div>
+    <nav class="acc-row mt-4" aria-label="Filtrer par type de compte">
+      {
+        filters.map((f) => (
+          <a class:list={['filter', role === f.id && 'on']} href={filterHref(f.id)} aria-current={role === f.id ? 'true' : undefined}>
+            {f.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    {
+      users.results.length ? (
+        <table class="acc-table">
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Type</th>
+              <th class="num">Commandes</th>
+              <th class="num">Prestations</th>
+              <th>Dernière connexion</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.results.map((u) => (
+              <tr>
+                <td>
+                  <a class="acc-link" href={`/admin/client/${u.id}/`}>
+                    {u.name || u.email}
+                  </a>
+                  <span class="acc-hint block">{[u.company, u.name ? u.email : ''].filter(Boolean).join(' · ')}</span>
+                </td>
+                <td>
+                  <span class="acc-badge">{ROLE_LABEL[u.role]}</span>
+                </td>
+                <td class="num" data-label="Commandes">
+                  {u.orders}
+                </td>
+                <td class="num" data-label="Prestations">
+                  {u.missions}
+                </td>
+                <td data-label="Dernière connexion">{u.last_login_at ? formatDate(u.last_login_at) : 'Jamais'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <p class="acc-empty">Aucun compte ne correspond.</p>
+      )
+    }
+  </div>
+
+  <div class="acc-card">
+    <h2 class="acc-h2">Ajouter un client</h2>
+    <p class="acc-sub">Les clients boutique peuvent aussi créer leur compte eux-mêmes en se connectant.</p>
+    <form method="post" class="acc-grid">
+      <label class="acc-field">
+        Adresse e-mail
+        <input type="email" name="email" required autocomplete="off" />
+      </label>
+      <label class="acc-field">
+        Type de compte
+        <select name="role">
+          <option value="prestation">{ROLE_LABEL.prestation}</option>
+          <option value="boutique">{ROLE_LABEL.boutique}</option>
+          <option value="admin">{ROLE_LABEL.admin}</option>
+        </select>
+      </label>
+      <label class="acc-field">
+        Nom et prénom
+        <input name="name" autocomplete="off" />
+      </label>
+      <label class="acc-field">
+        Société
+        <input name="company" autocomplete="off" />
+      </label>
+      <label class="acc-field">
+        Téléphone
+        <input name="phone" type="tel" autocomplete="off" />
+      </label>
+      <label class="acc-field">
+        Mot de passe temporaire <span class="acc-hint">à transmettre au client, qui le changera</span>
+        <input name="password" value={temporaryPassword()} required minlength={MIN_PASSWORD} autocomplete="off" spellcheck="false" />
+      </label>
+      <div class="full">
+        <button type="submit" class="acc-btn">Créer le compte</button>
+      </div>
+    </form>
+  </div>
+</AccountLayout>
+
+<style>
+  .grow {
+    flex: 1 1 260px;
+  }
+  .filter {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 14px;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid var(--color-line);
+    transition:
+      background-color 150ms ease-out,
+      color 150ms ease-out;
+  }
+  .filter.on {
+    color: #fff;
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+  }
+  @media (hover: hover) {
+    .filter:not(.on):hover {
+      background: var(--color-mist);
+    }
+  }
+  .filter:focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 2px;
+  }
+</style>

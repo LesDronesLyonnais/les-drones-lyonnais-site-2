@@ -41,9 +41,17 @@ const squareColor = (id: string, color: string) => (id === 'boutique' ? 'current
 
     <div class="flex items-center gap-2 md:gap-5">
     <div class="hidden items-center gap-5 md:flex">
-      <a href={SITE.phoneHref} class="phone hidden text-[15px] font-medium tabular-nums lg:inline">{SITE.phone}</a>
+      <a href={SITE.phoneHref} class="phone hidden text-[15px] font-medium whitespace-nowrap tabular-nums xl:inline">{SITE.phone}</a>
       <Button href={SITE.contactPath} variant="gold" size="sm">Demander un devis</Button>
     </div>
+
+    <!-- Customer / admin area (signed out: /compte/ sends to /connexion/). -->
+    <a href="/compte/" class="cart-btn" aria-label="Mon compte">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="8.5" r="4" />
+        <path d="M4.5 20.5c1.2-3.6 4-5.5 7.5-5.5s6.3 1.9 7.5 5.5" />
+      </svg>
+    </a>
 
     <!-- Cart (CartDrawer): a small flight case, with the number of items. -->
     <button type="button" class="cart-btn" data-cart-open aria-label="Panier, 0 article">

@@ -14,7 +14,7 @@ as a technical or visual constraint.
 
 ## Stack
 
-- Astro (static), TypeScript, Tailwind CSS 4
+- Astro (static, plus on-demand account pages on the Cloudflare adapter), TypeScript, Tailwind CSS 4
 - Cloudflare for hosting
 - Stripe for payments (test keys during development), via Stripe Checkout
 - Cloudflare Worker + D1 later, only for dynamic data (orders, bookings, availability)
@@ -160,8 +160,11 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   "Complétez votre équipement", "Découvrez le" + figures, "Ce qu'il faut savoir", "Pop
   vous conseille", "Pour qui ?", "Quel permis ?") is imported by
   `node scripts/import-product-pages.mjs` → src/data/product-pages.json and shown by
-  components/shop/ProductStory.astro. Their "Quel permis ?" wins over the generic
-  data/regulation.ts advice. Pop's advice is one section of its own (PopAdvice, after
+  components/shop/ProductStory.astro. "Quel permis ?" always shows the official
+  text of the drone's class (PERMIS_BY_CLASS in data/regulation.ts, checked against DGAC /
+  EASA on 2026-11-17; A1/A3 shown as a prerequisite of BAPD and CATS); the imported text is
+  ignored and non-drones get no block. A drone with two classes (Matrice 5T: C2 or C6) uses
+  `permisOr`. Hand-added products: data/catalog-extra.ts (survives the import). Pop's advice is one section of its own (PopAdvice, after
   "Découvrez le": large Pop, chat bubbles that type in, quick questions opening PopChat),
   not bubbles scattered in the page; Pop also peeks over the "Quel permis ?" card. New
   high-res Pop poses (conseil, drone) come from `node --env-file=.env
@@ -205,6 +208,24 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   (IFRAME_SANDBOX, no allow-downloads / allow-popups): Tikee's "Téléchargement Image" link
   stays in its menu but downloads nothing (tested in Chromium). noindex, not in the menu.
   The Tikee gallery's title is white: keep it on a dark background.
+
+- Accounts (2026-11-17): the site stays static except /connexion/, /compte/, /admin/ (on demand,
+  `prerender = false`), via @astrojs/cloudflare 14.3 (prerenderEnvironment node, images
+  compiled at build; build output dist/client + dist/server). D1 `DB` (schema in migrations/,
+  `npm run db:migrate`, demo data `npm run db:seed`: three accounts whose temporary
+  passwords are written at the top of scripts/seed-accounts.sql, local only) and R2 `FILES`
+  (invoice PDFs, deliverables). Sign-in: e-mail + password (PBKDF2-SHA256 100k, lock after
+  5 failures / 15 min), sign-up for shop customers, temporary passwords set by the admin
+  (must_change_password → /compte/mot-de-passe/ first), forgotten password = one-time
+  e-mail link (no mail service yet: shown on the page in dev, only logged in prod). Session
+  cookie; src/middleware.ts guards the areas. Roles: admin (/admin/: clients,
+  orders, missions, deliverables, invoices), boutique (orders + invoices), prestation
+  (missions: date, place, terms, deliverables + invoices). Files only through
+  /compte/fichier/<facture|livrable>/<id>/ (owner or admin). ADMIN_EMAILS in .dev.vars /
+  secret, never in wrangler.jsonc. Runtime types: src/cloudflare.d.ts (the full
+  `wrangler types` runtime breaks the DOM types), bindings: `npm run types`.
+  Before deploying: create the D1 database (id in wrangler.jsonc) and the R2 bucket, apply
+  migrations --remote, set ADMIN_EMAILS, wire an e-mail service in sendResetLink.
 
 Next: /contact/ (receives ?commande=slug*qty,…, ?location=&du=&au=, ?formation=,
 ?prestation=), Stripe checkout (from the cart) and booking Worker, legal pages,

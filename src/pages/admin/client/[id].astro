@@ -1,0 +1,534 @@
+---
+// One client in the admin: details and account type, orders (shop), missions (services),
+// invoices (PDF uploads), and deleting the account. Every form posts here with an
+// "action" field, then redirects back (?ok=…).
+import AccountLayout from '../../../layouts/AccountLayout.astro';
+import { MIN_PASSWORD, db, isEmail, normEmail, setPassword, temporaryPassword, type User } from '../../../lib/server/auth';
+import { amount, back, fileOf, isDate, oneOf, parseItems, removeFile, storeFile, text, today } from '../../../lib/server/admin';
+import {
+  MISSION_STATUS,
+  ORDER_STATUS,
+  ROLE_LABEL,
+  formatDate,
+  formatEuro,
+  invoiceUrl,
+  orderItems,
+  type Invoice,
+  type Mission,
+  type MissionStatus,
+  type Order,
+  type OrderStatus,
+} from '../../../lib/account';
+import { SERVICES } from '../../../data/services';
+
+export const prerender = false;
+
+const me = Astro.locals.user!;
+const id = Number(Astro.params.id);
+const client = Number.isInteger(id) ? await db().prepare('SELECT * FROM users WHERE id = ?').bind(id).first<User>() : null;
+if (!client) return new Response('Client introuvable', { status: 404 });
+
+const ROLES = ['boutique', 'prestation', 'admin'] as const;
+const ORDER_KEYS = Object.keys(ORDER_STATUS) as OrderStatus[];
+const MISSION_KEYS = Object.keys(MISSION_STATUS) as MissionStatus[];
+const self = `/admin/client/${client.id}/`;
+let error: string | null = null;
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const action = text(form, 'action');
+  const ref = Number(text(form, 'ref'));
+
+  if (action === 'temp_password' && client.id !== me.id) {
+    const password = text(form, 'password', 200);
+    if (password.length < MIN_PASSWORD) error = `Le mot de passe temporaire doit faire au moins ${MIN_PASSWORD} caractères.`;
+    else {
+      await setPassword(client.id, password, true);
+      // Signs the client out everywhere: the new password is needed.
+      await db().prepare('DELETE FROM sessions WHERE user_id = ?').bind(client.id).run();
+      return Astro.redirect(back(self, 'Mot de passe temporaire défini. Transmettez-le au client.'));
+    }
+  }
+
+  if (action === 'profile') {
+    const email = normEmail(text(form, 'email', 200));
+    const role = client.id === me.id ? 'admin' : oneOf(text(form, 'role'), ROLES, client.role);
+    if (!isEmail(email)) error = 'Adresse e-mail invalide.';
+    else if (await db().prepare('SELECT 1 FROM users WHERE email = ? AND id != ?').bind(email, client.id).first()) error = `Un autre compte utilise déjà ${email}.`;
+    else {
+      await db()
+        .prepare('UPDATE users SET email = ?, name = ?, company = ?, phone = ?, role = ? WHERE id = ?')
+        .bind(email, text(form, 'name', 200), text(form, 'company', 200), text(form, 'phone', 40), role, client.id)
+        .run();
+      return Astro.redirect(back(self, 'Fiche client enregistrée.'));
+    }
+  }
+
+  if (action === 'add_order') {
+    const items = parseItems(text(form, 'items', 5000));
+    const number = text(form, 'number', 40);
+    const total = amount(form, 'total') || items.reduce((s, i) => s + i.qty * i.priceTTC, 0);
+    if (!number) error = 'Indiquez un numéro de commande.';
+    else if (await db().prepare('SELECT 1 FROM orders WHERE number = ?').bind(number).first()) error = `La commande ${number} existe déjà.`;
+    else {
+      await db()
+        .prepare('INSERT INTO orders (user_id, number, ordered_on, status, items, total_ttc, note) VALUES (?, ?, ?, ?, ?, ?, ?)')
+        .bind(client.id, number, isDate(text(form, 'date')) ? text(form, 'date') : today(), oneOf(text(form, 'status'), ORDER_KEYS, 'en_preparation'), JSON.stringify(items), Math.round(total * 100) / 100, text(form, 'note', 1000))
+        .run();
+      return Astro.redirect(back(self, `Commande ${number} ajoutée.`));
+    }
+  }
+
+  if (action === 'order_status') {
+    await db().prepare('UPDATE orders SET status = ? WHERE id = ? AND user_id = ?').bind(oneOf(text(form, 'status'), ORDER_KEYS, 'en_preparation'), ref, client.id).run();
+    return Astro.redirect(back(self, 'Statut de la commande mis à jour.'));
+  }
+
+  if (action === 'delete_order') {
+    await db().prepare('DELETE FROM orders WHERE id = ? AND user_id = ?').bind(ref, client.id).run();
+    return Astro.redirect(back(self, 'Commande supprimée.'));
+  }
+
+  if (action === 'add_mission') {
+    const title = text(form, 'title', 200);
+    const date = text(form, 'date');
+    if (!title || !isDate(date)) error = 'Une mission a besoin d’un titre et d’une date.';
+    else {
+      const mission = await db()
+        .prepare('INSERT INTO missions (user_id, title, service, mission_on, place, details, status) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id')
+        .bind(client.id, title, text(form, 'service', 120), date, text(form, 'place', 300), text(form, 'details', 5000), oneOf(text(form, 'status'), MISSION_KEYS, 'planifiee'))
+        .first<{ id: number }>();
+      return Astro.redirect(back(`/admin/mission/${mission!.id}/`, 'Mission créée. Ajoutez-y les livrables quand ils sont prêts.'));
+    }
+  }
+
+  if (action === 'add_invoice') {
+    const file = fileOf(form, 'file');
+    const number = text(form, 'number', 40);
+    const link = text(form, 'link', 40); // "order:12" or "mission:4"
+    const [kind, linkId] = link.split(':');
+    if (!number || !file) error = 'Une facture a besoin d’un numéro et d’un fichier PDF.';
+    else if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) error = 'La facture doit être un fichier PDF.';
+    else if (await db().prepare('SELECT 1 FROM invoices WHERE number = ?').bind(number).first()) error = `La facture ${number} existe déjà.`;
+    else {
+      const key = await storeFile(`factures/${client.id}`, file);
+      await db()
+        .prepare('INSERT INTO invoices (user_id, order_id, mission_id, number, issued_on, amount_ttc, file_key) VALUES (?, ?, ?, ?, ?, ?, ?)')
+        .bind(
+          client.id,
+          kind === 'order' ? Number(linkId) : null,
+          kind === 'mission' ? Number(linkId) : null,
+          number,
+          isDate(text(form, 'date')) ? text(form, 'date') : today(),
+          amount(form, 'amount'),
+          key,
+        )
+        .run();
+      return Astro.redirect(back(self, `Facture ${number} ajoutée.`));
+    }
+  }
+
+  if (action === 'delete_invoice') {
+    const inv = await db().prepare('DELETE FROM invoices WHERE id = ? AND user_id = ? RETURNING file_key').bind(ref, client.id).first<{ file_key: string }>();
+    if (inv) await removeFile(inv.file_key);
+    return Astro.redirect(back(self, 'Facture supprimée.'));
+  }
+
+  if (action === 'delete_user' && client.id !== me.id) {
+    const keys = await db()
+      .prepare('SELECT file_key FROM invoices WHERE user_id = ? UNION ALL SELECT d.file_key FROM deliverables d JOIN missions m ON m.id = d.mission_id WHERE m.user_id = ?')
+      .bind(client.id, client.id)
+      .all<{ file_key: string }>();
+    await Promise.all(keys.results.map((k) => removeFile(k.file_key)));
+    await db().prepare('DELETE FROM users WHERE id = ?').bind(client.id).run();
+    return Astro.redirect(back('/admin/', `Le compte ${client.email} a été supprimé.`));
+  }
+}
+
+const [orders, missions, invoices, orderCount] = await Promise.all([
+  db().prepare('SELECT * FROM orders WHERE user_id = ? ORDER BY ordered_on DESC, id DESC').bind(client.id).all<Order>(),
+  db().prepare('SELECT * FROM missions WHERE user_id = ? ORDER BY mission_on DESC, id DESC').bind(client.id).all<Mission>(),
+  db().prepare('SELECT * FROM invoices WHERE user_id = ? ORDER BY issued_on DESC, id DESC').bind(client.id).all<Invoice>(),
+  db().prepare('SELECT COUNT(*) AS n FROM orders').first<{ n: number }>(),
+]);
+const nextOrderNumber = `CMD-${new Date().getFullYear()}-${String((orderCount?.n ?? 0) + 1).padStart(4, '0')}`;
+const showOrders = client.role === 'boutique' || orders.results.length > 0;
+const showMissions = client.role === 'prestation' || missions.results.length > 0;
+---
+
+<AccountLayout title={client.name || client.email} kicker={`Administration · ${ROLE_LABEL[client.role]}`} error={error}>
+  <p class="mt-4 acc-row">
+    <a class="acc-link" href="/admin/">← Tous les clients</a>
+  </p>
+
+  {
+    showMissions && (
+      <div class="acc-card">
+        <h2 class="acc-h2">Prestations</h2>
+        {missions.results.length ? (
+          <table class="acc-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Mission</th>
+                <th>Lieu</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              {missions.results.map((m) => (
+                <tr>
+                  <td data-label="Date">{formatDate(m.mission_on)}</td>
+                  <td>
+                    <a class="acc-link" href={`/admin/mission/${m.id}/`}>
+                      {m.title}
+                    </a>
+                  </td>
+                  <td data-label="Lieu">{m.place || '—'}</td>
+                  <td>
+                    <span class:list={['acc-badge', m.status === 'livree' && 'ok']}>{MISSION_STATUS[m.status]}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p class="acc-empty">Aucune mission pour ce client.</p>
+        )}
+        <details class="acc-add" open={missions.results.length === 0 || undefined}>
+          <summary>Nouvelle mission</summary>
+          <form method="post" class="acc-grid">
+            <input type="hidden" name="action" value="add_mission" />
+            <label class="acc-field">
+              Titre
+              <input name="title" required placeholder="Inspection thermique de la toiture" />
+            </label>
+            <label class="acc-field">
+              Prestation
+              <select name="service">
+                <option value="">—</option>
+                {SERVICES.map((s) => (
+                  <option value={s.href.replace(/^\/|\/$/g, '')}>{s.label}</option>
+                ))}
+              </select>
+            </label>
+            <label class="acc-field">
+              Date
+              <input type="date" name="date" required value={today()} />
+            </label>
+            <label class="acc-field">
+              Lieu
+              <input name="place" placeholder="Adresse ou site" />
+            </label>
+            <label class="acc-field full">
+              Modalités
+              <textarea name="details" placeholder="Drone, équipe, horaires, autorisations, conditions d’accès…" />
+            </label>
+            <label class="acc-field">
+              Statut
+              <select name="status">
+                {MISSION_KEYS.map((k) => (
+                  <option value={k}>{MISSION_STATUS[k]}</option>
+                ))}
+              </select>
+            </label>
+            <div class="full">
+              <button type="submit" class="acc-btn">
+                Créer la mission
+              </button>
+            </div>
+          </form>
+        </details>
+      </div>
+    )
+  }
+
+  {
+    showOrders && (
+      <div class="acc-card">
+        <h2 class="acc-h2">Commandes</h2>
+        {orders.results.length ? (
+          <table class="acc-table">
+            <thead>
+              <tr>
+                <th>Commande</th>
+                <th>Articles</th>
+                <th class="num">Total TTC</th>
+                <th>Statut</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {orders.results.map((o) => (
+                <tr>
+                  <td>
+                    <strong>N° {o.number}</strong>
+                    <span class="acc-hint block">{formatDate(o.ordered_on)}</span>
+                  </td>
+                  <td>
+                    {orderItems(o).map((it) => (
+                      <span class="block">
+                        {it.qty} × {it.name}
+                      </span>
+                    ))}
+                    {o.note && <span class="acc-hint block">{o.note}</span>}
+                  </td>
+                  <td class="num" data-label="Total">
+                    {formatEuro(o.total_ttc)}
+                  </td>
+                  <td>
+                    <form method="post" class="acc-row">
+                      <input type="hidden" name="action" value="order_status" />
+                      <input type="hidden" name="ref" value={o.id} />
+                      <label class="acc-field">
+                        <span class="sr-only">Statut de la commande {o.number}</span>
+                        <select name="status">
+                          {ORDER_KEYS.map((k) => (
+                            <option value={k} selected={k === o.status}>
+                              {ORDER_STATUS[k]}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <button type="submit" class="acc-btn light">
+                        OK
+                      </button>
+                    </form>
+                  </td>
+                  <td>
+                    <form method="post" data-confirm={`Supprimer la commande ${o.number} ?`}>
+                      <input type="hidden" name="action" value="delete_order" />
+                      <input type="hidden" name="ref" value={o.id} />
+                      <button type="submit" class="acc-btn danger">
+                        Supprimer
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p class="acc-empty">Aucune commande pour ce client.</p>
+        )}
+        <details class="acc-add">
+          <summary>Nouvelle commande</summary>
+          <form method="post" class="acc-grid">
+            <input type="hidden" name="action" value="add_order" />
+            <label class="acc-field">
+              Numéro
+              <input name="number" required value={nextOrderNumber} />
+            </label>
+            <label class="acc-field">
+              Date
+              <input type="date" name="date" value={today()} />
+            </label>
+            <label class="acc-field full">
+              Articles <span class="acc-hint">un par ligne : quantité × nom — prix unitaire TTC</span>
+              <textarea name="items" placeholder={'1 × DJI Matrice 5T — 8675\n2 × Batterie pour DJI Matrice 5T — 511'} />
+            </label>
+            <label class="acc-field">
+              Total TTC <span class="acc-hint">(vide : somme des articles)</span>
+              <input name="total" inputmode="decimal" />
+            </label>
+            <label class="acc-field">
+              Statut
+              <select name="status">
+                {ORDER_KEYS.map((k) => (
+                  <option value={k} selected={k === 'en_preparation'}>
+                    {ORDER_STATUS[k]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label class="acc-field full">
+              Note <span class="acc-hint">(visible par vous seulement)</span>
+              <input name="note" />
+            </label>
+            <div class="full">
+              <button type="submit" class="acc-btn">
+                Ajouter la commande
+              </button>
+            </div>
+          </form>
+        </details>
+      </div>
+    )
+  }
+
+  {
+    client.role !== 'admin' && (
+      <div class="acc-card">
+        <h2 class="acc-h2">Factures</h2>
+        {invoices.results.length ? (
+          <table class="acc-table">
+            <thead>
+              <tr>
+                <th>Facture</th>
+                <th>Date</th>
+                <th class="num">Montant TTC</th>
+                <th>Rattachée à</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {invoices.results.map((i) => (
+                <tr>
+                  <td>
+                    <a class="acc-link" href={invoiceUrl(i)}>
+                      N° {i.number}
+                    </a>
+                  </td>
+                  <td data-label="Date">{formatDate(i.issued_on)}</td>
+                  <td class="num" data-label="Montant">
+                    {formatEuro(i.amount_ttc)}
+                  </td>
+                  <td data-label="Rattachée à">
+                    {i.order_id
+                      ? `Commande ${orders.results.find((o) => o.id === i.order_id)?.number ?? ''}`
+                      : i.mission_id
+                        ? missions.results.find((m) => m.id === i.mission_id)?.title
+                        : '—'}
+                  </td>
+                  <td>
+                    <form method="post" data-confirm={`Supprimer la facture ${i.number} ?`}>
+                      <input type="hidden" name="action" value="delete_invoice" />
+                      <input type="hidden" name="ref" value={i.id} />
+                      <button type="submit" class="acc-btn danger">
+                        Supprimer
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p class="acc-empty">Aucune facture pour ce client.</p>
+        )}
+        <details class="acc-add">
+          <summary>Ajouter une facture</summary>
+          <form method="post" enctype="multipart/form-data" class="acc-grid">
+            <input type="hidden" name="action" value="add_invoice" />
+            <label class="acc-field">
+              Numéro de facture
+              <input name="number" required />
+            </label>
+            <label class="acc-field">
+              Date
+              <input type="date" name="date" value={today()} />
+            </label>
+            <label class="acc-field">
+              Montant TTC
+              <input name="amount" inputmode="decimal" required />
+            </label>
+            <label class="acc-field">
+              Rattacher à
+              <select name="link">
+                <option value="">Rien (facture seule)</option>
+                {orders.results.map((o) => (
+                  <option value={`order:${o.id}`}>Commande {o.number}</option>
+                ))}
+                {missions.results.map((m) => (
+                  <option value={`mission:${m.id}`}>
+                    Mission : {m.title} ({formatDate(m.mission_on)})
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label class="acc-field full">
+              Fichier PDF
+              <input type="file" name="file" accept="application/pdf,.pdf" required />
+            </label>
+            <div class="full">
+              <button type="submit" class="acc-btn">
+                Ajouter la facture
+              </button>
+            </div>
+          </form>
+        </details>
+      </div>
+    )
+  }
+
+  <div class="acc-card">
+    <h2 class="acc-h2">Fiche client</h2>
+    <p class="acc-sub">
+      Compte créé le {formatDate(client.created_at)} · {client.last_login_at ? `dernière connexion le ${formatDate(client.last_login_at)}` : 'jamais connecté'}
+    </p>
+    <form method="post" class="acc-grid">
+      <input type="hidden" name="action" value="profile" />
+      <label class="acc-field">
+        Adresse e-mail (connexion)
+        <input type="email" name="email" value={client.email} required />
+      </label>
+      <label class="acc-field">
+        Type de compte
+        <select name="role" disabled={client.id === me.id}>
+          {ROLES.map((r) => (
+            <option value={r} selected={r === client.role}>
+              {ROLE_LABEL[r]}
+            </option>
+          ))}
+        </select>
+        {client.id === me.id && <span class="acc-hint">Vous ne pouvez pas changer votre propre type de compte.</span>}
+      </label>
+      <label class="acc-field">
+        Nom et prénom
+        <input name="name" value={client.name} />
+      </label>
+      <label class="acc-field">
+        Société
+        <input name="company" value={client.company} />
+      </label>
+      <label class="acc-field">
+        Téléphone
+        <input name="phone" type="tel" value={client.phone} />
+      </label>
+      <div class="full">
+        <button type="submit" class="acc-btn">
+          Enregistrer
+        </button>
+      </div>
+    </form>
+    {
+      client.id !== me.id && (
+        <form method="post" class="acc-grid pw-form">
+          <input type="hidden" name="action" value="temp_password" />
+          <label class="acc-field">
+            Nouveau mot de passe temporaire
+            <span class="acc-hint">
+              {client.password_hash ? (client.must_change_password ? 'Le client n’a pas encore choisi son mot de passe.' : 'Le client a choisi son mot de passe.') : 'Aucun mot de passe pour le moment.'} Il
+              devra le changer à sa prochaine connexion.
+            </span>
+            <input name="password" value={temporaryPassword()} required minlength={MIN_PASSWORD} autocomplete="off" spellcheck="false" />
+          </label>
+          <div class="self-end">
+            <button type="submit" class="acc-btn light">
+              Définir ce mot de passe
+            </button>
+          </div>
+        </form>
+      )
+    }
+    {
+      client.id !== me.id && (
+        <form method="post" class="mt-6" data-confirm={`Supprimer définitivement le compte ${client.email}, ses commandes, missions, livrables et factures ?`}>
+          <input type="hidden" name="action" value="delete_user" />
+          <button type="submit" class="acc-btn danger">
+            Supprimer ce compte
+          </button>
+        </form>
+      )
+    }
+  </div>
+</AccountLayout>
+
+<style>
+  .pw-form {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px dashed var(--color-line);
+  }
+</style>
+

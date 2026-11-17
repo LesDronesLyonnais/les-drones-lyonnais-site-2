@@ -1,0 +1,60 @@
+---
+// Sign-in: e-mail + password. Links to account creation (shop customers) and to the
+// forgotten-password link. Services clients get their account and a temporary password
+// from the team.
+import AccountLayout from '../../layouts/AccountLayout.astro';
+import { homeOf, isEmail, normEmail, safeNext, signInWithPassword, startSession } from '../../lib/server/auth';
+
+export const prerender = false;
+
+const next = safeNext(Astro.url.searchParams.get('suite'));
+if (Astro.locals.user) return Astro.redirect(next || homeOf(Astro.locals.user));
+
+let error: string | null = null;
+let email = '';
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  email = normEmail(String(form.get('email') ?? ''));
+  const password = String(form.get('password') ?? '');
+  if (!isEmail(email) || !password) {
+    error = 'Indiquez votre e-mail et votre mot de passe.';
+  } else {
+    const result = await signInWithPassword(email, password);
+    if (result.user) {
+      await startSession(result.user, Astro.cookies, Astro.url.protocol === 'https:');
+      const home = homeOf(result.user);
+      return Astro.redirect(home === '/compte/mot-de-passe/' ? home : safeNext(String(form.get('suite') ?? '')) || home);
+    }
+    error = result.error ?? 'Connexion impossible.';
+  }
+}
+const query = next ? `?suite=${encodeURIComponent(next)}` : '';
+---
+
+<AccountLayout title="Connexion à votre espace" kicker="Espace client" error={error}>
+  <div class="acc-card max-w-xl">
+    <p>Retrouvez vos commandes, vos factures et les livrables de vos prestations.</p>
+    <form method="post" class="acc-grid !grid-cols-1">
+      <input type="hidden" name="suite" value={next} />
+      <label class="acc-field">
+        Adresse e-mail
+        <input type="email" name="email" value={email} required autocomplete="username" inputmode="email" autofocus={!email} />
+      </label>
+      <label class="acc-field">
+        <span class="acc-split">
+          Mot de passe
+          <a class="acc-link text-[13px] font-normal" href="/connexion/oubli/">Mot de passe oublié ?</a>
+        </span>
+        <input type="password" name="password" required autocomplete="current-password" autofocus={!!email} />
+      </label>
+      <div>
+        <button type="submit" class="acc-btn">Se connecter</button>
+      </div>
+    </form>
+  </div>
+  <div class="acc-card max-w-xl acc-split">
+    <p>Pas encore de compte client ?</p>
+    <a class="acc-btn light" href={`/connexion/inscription/${query}`}>Créer un compte</a>
+  </div>
+</AccountLayout>

@@ -1,0 +1,44 @@
+---
+// The forgotten-password link. Opening it does not sign in by itself (mail scanners open
+// links): the visitor confirms with a button, which uses the one-time token, signs in and
+// asks for a new password.
+import AccountLayout from '../../layouts/AccountLayout.astro';
+import { consumeSignInToken, db, startSession } from '../../lib/server/auth';
+
+export const prerender = false;
+
+let token = Astro.url.searchParams.get('t') ?? '';
+let error: string | null = null;
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  token = String(form.get('t') ?? '');
+  const user = await consumeSignInToken(token);
+  if (user) {
+    await db().prepare('UPDATE users SET must_change_password = 1 WHERE id = ?').bind(user.id).run();
+    await startSession(user, Astro.cookies, Astro.url.protocol === 'https:');
+    return Astro.redirect('/compte/mot-de-passe/');
+  }
+  error = 'Ce lien a expiré ou a déjà servi. Demandez-en un nouveau.';
+}
+---
+
+<AccountLayout title="Nouveau mot de passe" kicker="Espace client" error={error}>
+  <div class="acc-card max-w-xl">
+    {
+      error || !token ? (
+        <a class="acc-btn" href="/connexion/oubli/">
+          Recevoir un nouveau lien
+        </a>
+      ) : (
+        <form method="post">
+          <input type="hidden" name="t" value={token} />
+          <p>Cliquez pour choisir votre nouveau mot de passe.</p>
+          <button type="submit" class="acc-btn mt-5">
+            Continuer
+          </button>
+        </form>
+      )
+    }
+  </div>
+</AccountLayout>

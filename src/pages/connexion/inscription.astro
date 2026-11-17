@@ -1,0 +1,62 @@
+---
+// Account creation for shop customers: e-mail, name, password. Services clients are
+// created by the team (admin) with a temporary password.
+import AccountLayout from '../../layouts/AccountLayout.astro';
+import { MIN_PASSWORD, createUser, findUser, homeOf, isEmail, normEmail, passwordProblem, safeNext, setPassword, startSession } from '../../lib/server/auth';
+
+export const prerender = false;
+
+const next = safeNext(Astro.url.searchParams.get('suite'));
+if (Astro.locals.user) return Astro.redirect(next || homeOf(Astro.locals.user));
+
+let error: string | null = null;
+let email = '';
+let name = '';
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  email = normEmail(String(form.get('email') ?? ''));
+  name = String(form.get('name') ?? '').trim().slice(0, 200);
+  const password = String(form.get('password') ?? '');
+  if (!isEmail(email)) error = 'Cette adresse e-mail ne semble pas valide.';
+  else if (await findUser(email)) error = 'Un compte existe déjà avec cette adresse. Connectez-vous, ou utilisez « Mot de passe oublié ».';
+  else error = passwordProblem(password, String(form.get('confirm') ?? ''));
+  if (!error) {
+    const user = await createUser(email, { name });
+    await setPassword(user.id, password);
+    await startSession(user, Astro.cookies, Astro.url.protocol === 'https:');
+    return Astro.redirect(safeNext(String(form.get('suite') ?? '')) || (user.role === 'admin' ? '/admin/' : '/compte/?ok=' + encodeURIComponent('Bienvenue ! Votre compte est créé.')));
+  }
+}
+---
+
+<AccountLayout title="Créer un compte" kicker="Espace client" error={error}>
+  <div class="acc-card max-w-xl">
+    <p>Suivez vos commandes et retrouvez vos factures.</p>
+    <form method="post" class="acc-grid !grid-cols-1">
+      <input type="hidden" name="suite" value={next} />
+      <label class="acc-field">
+        Nom et prénom
+        <input name="name" value={name} autocomplete="name" maxlength="200" />
+      </label>
+      <label class="acc-field">
+        Adresse e-mail
+        <input type="email" name="email" value={email} required autocomplete="username" inputmode="email" />
+      </label>
+      <label class="acc-field">
+        Mot de passe <span class="acc-hint">au moins {MIN_PASSWORD} caractères</span>
+        <input type="password" name="password" required minlength={MIN_PASSWORD} autocomplete="new-password" />
+      </label>
+      <label class="acc-field">
+        Confirmer le mot de passe
+        <input type="password" name="confirm" required minlength={MIN_PASSWORD} autocomplete="new-password" />
+      </label>
+      <div>
+        <button type="submit" class="acc-btn">Créer mon compte</button>
+      </div>
+    </form>
+    <p class="acc-sub mt-5">
+      Déjà un compte ? <a class="acc-link" href={`/connexion/${next ? `?suite=${encodeURIComponent(next)}` : ''}`}>Se connecter</a>
+    </p>
+  </div>
+</AccountLayout>

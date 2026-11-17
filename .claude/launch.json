@@ -1,0 +1,6 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "astro-dev", "runtimeExecutable": "/bin/sh", "runtimeArgs": ["-c", "PATH=/Users/dylancastano/.local/node/bin:$PATH exec npm run dev -- --ignore-lock --port 4330"], "port": 4330 }
+  ]
+}

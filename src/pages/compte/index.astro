@@ -1,0 +1,228 @@
+---
+// The customer area, by role:
+// - shop customer: orders (items, status, total) and invoices;
+// - services client: missions (date, place, status, deliverables) and invoices;
+// - admin: profile, with a link to the client management.
+// A section also shows when the account has data of the other kind (role changed).
+import AccountLayout from '../../layouts/AccountLayout.astro';
+import { db } from '../../lib/server/auth';
+import {
+  MISSION_STATUS,
+  ORDER_STATUS,
+  formatDate,
+  formatEuro,
+  invoiceUrl,
+  orderItems,
+  type Invoice,
+  type Mission,
+  type Order,
+} from '../../lib/account';
+
+export const prerender = false;
+
+const user = Astro.locals.user!;
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const field = (k: string) => String(form.get(k) ?? '').trim().slice(0, 200);
+  await db().prepare('UPDATE users SET name = ?, company = ?, phone = ? WHERE id = ?').bind(field('name'), field('company'), field('phone'), user.id).run();
+  return Astro.redirect('/compte/?ok=' + encodeURIComponent('Vos coordonnées sont enregistrées.'));
+}
+
+const [orders, missions, invoices, counts] = await Promise.all([
+  db().prepare('SELECT * FROM orders WHERE user_id = ? ORDER BY ordered_on DESC, id DESC').bind(user.id).all<Order>(),
+  db().prepare('SELECT * FROM missions WHERE user_id = ? ORDER BY mission_on DESC, id DESC').bind(user.id).all<Mission>(),
+  db().prepare('SELECT * FROM invoices WHERE user_id = ? ORDER BY issued_on DESC, id DESC').bind(user.id).all<Invoice>(),
+  db()
+    .prepare('SELECT mission_id, COUNT(*) AS n FROM deliverables WHERE mission_id IN (SELECT id FROM missions WHERE user_id = ?) GROUP BY mission_id')
+    .bind(user.id)
+    .all<{ mission_id: number; n: number }>(),
+]);
+const deliverableCount = new Map(counts.results.map((c) => [c.mission_id, c.n]));
+const invoiceOfOrder = new Map(invoices.results.filter((i) => i.order_id).map((i) => [i.order_id!, i]));
+const showOrders = user.role === 'boutique' || orders.results.length > 0;
+const showMissions = user.role === 'prestation' || missions.results.length > 0;
+const firstVisit = !user.name;
+const title = user.role === 'admin' ? 'Mon profil' : user.role === 'prestation' ? 'Mes prestations' : 'Mes commandes';
+---
+
+<AccountLayout title={title} kicker={user.company || undefined}>
+  {
+    user.role === 'admin' && (
+      <div class="acc-card acc-split">
+        <p>Vous êtes administrateur : gérez les clients, leurs commandes, prestations, livrables et factures.</p>
+        <a class="acc-btn" href="/admin/">
+          Gérer les clients
+        </a>
+      </div>
+    )
+  }
+
+  {
+    showMissions && (
+      <div class="acc-card">
+        <h2 class="acc-h2">Prestations</h2>
+        <p class="acc-sub">Vos missions avec leur date, le lieu, les modalités et les livrables.</p>
+        {missions.results.length ? (
+          <table class="acc-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Prestation</th>
+                <th>Lieu</th>
+                <th>Statut</th>
+                <th>Livrables</th>
+              </tr>
+            </thead>
+            <tbody>
+              {missions.results.map((m) => (
+                <tr>
+                  <td data-label="Date">{formatDate(m.mission_on)}</td>
+                  <td>
+                    <a class="acc-link" href={`/compte/mission/${m.id}/`}>
+                      {m.title}
+                    </a>
+                  </td>
+                  <td data-label="Lieu">{m.place || '—'}</td>
+                  <td>
+                    <span class:list={['acc-badge', m.status === 'livree' && 'ok']}>{MISSION_STATUS[m.status]}</span>
+                  </td>
+                  <td data-label="Livrables">{deliverableCount.get(m.id) ?? 0}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p class="acc-empty">Aucune prestation pour le moment. Elles apparaîtront ici dès qu’une mission est planifiée avec vous.</p>
+        )}
+      </div>
+    )
+  }
+
+  {
+    showOrders && (
+      <div class="acc-card">
+        <h2 class="acc-h2">Commandes</h2>
+        {orders.results.length ? (
+          <table class="acc-table">
+            <thead>
+              <tr>
+                <th>Commande</th>
+                <th>Date</th>
+                <th>Articles</th>
+                <th>Statut</th>
+                <th class="num">Total TTC</th>
+                <th>Facture</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.results.map((o) => {
+                const inv = invoiceOfOrder.get(o.id);
+                return (
+                  <tr>
+                    <td>
+                      <strong>N° {o.number}</strong>
+                    </td>
+                    <td data-label="Date">{formatDate(o.ordered_on)}</td>
+                    <td>
+                      {orderItems(o).map((it) => (
+                        <span class="block">
+                          {it.qty} × {it.name}
+                        </span>
+                      ))}
+                    </td>
+                    <td>
+                      <span class:list={['acc-badge', o.status === 'livree' && 'ok']}>{ORDER_STATUS[o.status]}</span>
+                    </td>
+                    <td class="num" data-label="Total">
+                      {formatEuro(o.total_ttc)}
+                    </td>
+                    <td>
+                      {inv ? (
+                        <a class="acc-link" href={invoiceUrl(inv)}>
+                          Facture PDF
+                        </a>
+                      ) : (
+                        <span class="acc-hint">À venir</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        ) : (
+          <p class="acc-empty">
+            Aucune commande pour le moment. <a class="acc-link" href="/boutique/">Découvrir la boutique</a>
+          </p>
+        )}
+      </div>
+    )
+  }
+
+  {
+    user.role !== 'admin' && (
+      <div class="acc-card">
+        <h2 class="acc-h2">Factures</h2>
+        {invoices.results.length ? (
+          <table class="acc-table">
+            <thead>
+              <tr>
+                <th>Facture</th>
+                <th>Date</th>
+                <th class="num">Montant TTC</th>
+                <th>PDF</th>
+              </tr>
+            </thead>
+            <tbody>
+              {invoices.results.map((i) => (
+                <tr>
+                  <td>
+                    <strong>N° {i.number}</strong>
+                  </td>
+                  <td data-label="Date">{formatDate(i.issued_on)}</td>
+                  <td class="num" data-label="Montant">
+                    {formatEuro(i.amount_ttc)}
+                  </td>
+                  <td>
+                    <a class="acc-link" href={invoiceUrl(i)}>
+                      Télécharger
+                    </a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p class="acc-empty">Aucune facture pour le moment.</p>
+        )}
+      </div>
+    )
+  }
+
+  <div class="acc-card" id="profil">
+    <h2 class="acc-h2">{firstVisit ? 'Bienvenue ! Complétez vos coordonnées' : 'Mes coordonnées'}</h2>
+    <p class="acc-sub">
+      Adresse de connexion : {user.email} · <a class="acc-link" href="/compte/mot-de-passe/">Changer de mot de passe</a>
+    </p>
+    <form method="post" class="acc-grid">
+      <label class="acc-field">
+        Nom et prénom
+        <input name="name" value={user.name} autocomplete="name" maxlength="200" />
+      </label>
+      <label class="acc-field">
+        Société <span class="acc-hint">(facultatif)</span>
+        <input name="company" value={user.company} autocomplete="organization" maxlength="200" />
+      </label>
+      <label class="acc-field">
+        Téléphone
+        <input name="phone" type="tel" value={user.phone} autocomplete="tel" maxlength="40" />
+      </label>
+      <div class="full">
+        <button type="submit" class="acc-btn">
+          Enregistrer
+        </button>
+      </div>
+    </form>
+  </div>
+</AccountLayout>

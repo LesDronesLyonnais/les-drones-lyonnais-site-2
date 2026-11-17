@@ -1,0 +1,171 @@
+---
+// One mission of a services client: date, place, terms (modalités), status, the
+// deliverables to download and its invoices. Admins can open any client's mission.
+import AccountLayout from '../../../layouts/AccountLayout.astro';
+import { db } from '../../../lib/server/auth';
+import { MISSION_STATUS, deliverableUrl, formatDate, formatEuro, formatSize, invoiceUrl, type Deliverable, type Invoice, type Mission } from '../../../lib/account';
+import { SERVICES } from '../../../data/services';
+
+export const prerender = false;
+
+const user = Astro.locals.user!;
+const id = Number(Astro.params.id);
+const mission = Number.isInteger(id)
+  ? await db()
+      .prepare(user.role === 'admin' ? 'SELECT * FROM missions WHERE id = ?' : 'SELECT * FROM missions WHERE id = ? AND user_id = ?')
+      .bind(...(user.role === 'admin' ? [id] : [id, user.id]))
+      .first<Mission>()
+  : null;
+if (!mission) return new Response('Mission introuvable', { status: 404 });
+
+const [deliverables, invoices] = await Promise.all([
+  db().prepare('SELECT * FROM deliverables WHERE mission_id = ? ORDER BY created_at, id').bind(mission.id).all<Deliverable>(),
+  db().prepare('SELECT * FROM invoices WHERE mission_id = ? ORDER BY issued_on DESC').bind(mission.id).all<Invoice>(),
+]);
+const service = SERVICES.find((s) => s.href === `/${mission.service}/`);
+---
+
+<AccountLayout title={mission.title} kicker={`Prestation du ${formatDate(mission.mission_on)}`}>
+  <p class="mt-4">
+    <a class="acc-link" href={user.role === 'admin' ? `/admin/mission/${mission.id}/` : '/compte/'}>
+      ← {user.role === 'admin' ? 'Gérer cette mission' : 'Toutes mes prestations'}
+    </a>
+  </p>
+
+  <div class="acc-card">
+    <dl class="facts">
+      <div>
+        <dt>Date</dt>
+        <dd>{formatDate(mission.mission_on)}</dd>
+      </div>
+      <div>
+        <dt>Lieu</dt>
+        <dd>{mission.place || '—'}</dd>
+      </div>
+      <div>
+        <dt>Statut</dt>
+        <dd>
+          <span class:list={['acc-badge', mission.status === 'livree' && 'ok']}>{MISSION_STATUS[mission.status]}</span>
+        </dd>
+      </div>
+      {
+        service && (
+          <div>
+            <dt>Prestation</dt>
+            <dd>
+              <a class="acc-link" href={service.href}>
+                {service.label}
+              </a>
+            </dd>
+          </div>
+        )
+      }
+    </dl>
+    {
+      mission.details && (
+        <div class="mt-6">
+          <h2 class="acc-h2">Modalités</h2>
+          <p class="details">{mission.details}</p>
+        </div>
+      )
+    }
+  </div>
+
+  <div class="acc-card">
+    <h2 class="acc-h2">Livrables</h2>
+    {
+      deliverables.results.length ? (
+        <ul class="files">
+          {deliverables.results.map((d) => (
+            <li>
+              <span class="file-name">{d.name}</span>
+              <span class="acc-hint">
+                {formatSize(d.size)} · ajouté le {formatDate(d.created_at)}
+              </span>
+              <a class="acc-btn light" href={deliverableUrl(d)} download>
+                Télécharger
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p class="acc-empty">Les livrables seront disponibles ici dès qu’ils sont prêts.</p>
+      )
+    }
+  </div>
+
+  {
+    invoices.results.length > 0 && (
+      <div class="acc-card">
+        <h2 class="acc-h2">Factures</h2>
+        <ul class="files">
+          {invoices.results.map((i) => (
+            <li>
+              <span class="file-name">N° {i.number}</span>
+              <span class="acc-hint">
+                {formatDate(i.issued_on)} · {formatEuro(i.amount_ttc)} TTC
+              </span>
+              <a class="acc-btn light" href={invoiceUrl(i)}>
+                Facture PDF
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )
+  }
+</AccountLayout>
+
+<style>
+  .facts {
+    display: grid;
+    gap: 16px 32px;
+  }
+  @media (min-width: 768px) {
+    .facts {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  .facts dt {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-muted);
+  }
+  .facts dd {
+    margin-top: 4px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+  .details {
+    margin-top: 10px;
+    max-width: 70ch;
+    line-height: 1.6;
+    white-space: pre-line;
+    color: var(--color-ink-soft);
+  }
+  .files {
+    display: grid;
+    margin-top: 12px;
+  }
+  .files li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 4px 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--color-line);
+  }
+  .file-name {
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+  .files .acc-hint {
+    grid-column: 1;
+  }
+  .files .acc-btn {
+    grid-row: 1 / span 2;
+    grid-column: 2;
+  }
+</style>

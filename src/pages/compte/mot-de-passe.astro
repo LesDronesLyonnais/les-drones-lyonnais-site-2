@@ -1,0 +1,57 @@
+---
+// Choosing a password. Required right after signing in with a temporary password (given by
+// the team) or a reset link: then no current password is asked. Otherwise, changing it
+// asks for the current one. Other sessions are signed out after a change.
+import AccountLayout from '../../layouts/AccountLayout.astro';
+import { MIN_PASSWORD, endOtherSessions, needsPassword, passwordProblem, setPassword, signInWithPassword } from '../../lib/server/auth';
+
+export const prerender = false;
+
+const user = Astro.locals.user!;
+const forced = needsPassword(user);
+let error: string | null = null;
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const password = String(form.get('password') ?? '');
+  error = passwordProblem(password, String(form.get('confirm') ?? ''));
+  if (!error && !forced) {
+    const check = await signInWithPassword(user.email, String(form.get('current') ?? ''));
+    if (!check.user) error = check.error === 'E-mail ou mot de passe incorrect.' ? 'Le mot de passe actuel est incorrect.' : (check.error ?? null);
+  }
+  if (!error) {
+    await setPassword(user.id, password);
+    await endOtherSessions(user.id, Astro.cookies);
+    return Astro.redirect((user.role === 'admin' ? '/admin/' : '/compte/') + '?ok=' + encodeURIComponent('Votre mot de passe est enregistré.'));
+  }
+}
+---
+
+<AccountLayout title={forced ? 'Choisissez votre mot de passe' : 'Changer de mot de passe'} kicker="Espace client" error={error}>
+  <div class="acc-card max-w-xl">
+    {forced && <p>Pour sécuriser votre compte, remplacez le mot de passe temporaire par le vôtre.</p>}
+    <form method="post" class="acc-grid !grid-cols-1">
+      <input type="text" name="username" value={user.email} autocomplete="username" hidden />
+      {
+        !forced && (
+          <label class="acc-field">
+            Mot de passe actuel
+            <input type="password" name="current" required autocomplete="current-password" />
+          </label>
+        )
+      }
+      <label class="acc-field">
+        Nouveau mot de passe <span class="acc-hint">au moins {MIN_PASSWORD} caractères</span>
+        <input type="password" name="password" required minlength={MIN_PASSWORD} autocomplete="new-password" autofocus />
+      </label>
+      <label class="acc-field">
+        Confirmer le nouveau mot de passe
+        <input type="password" name="confirm" required minlength={MIN_PASSWORD} autocomplete="new-password" />
+      </label>
+      <div class="acc-row">
+        <button type="submit" class="acc-btn">Enregistrer</button>
+        {!forced && <a class="acc-link" href="/compte/">Annuler</a>}
+      </div>
+    </form>
+  </div>
+</AccountLayout>

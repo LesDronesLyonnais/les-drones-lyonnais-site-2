@@ -1,12 +1,24 @@
-// Static site: Astro builds to dist/, served as Workers static assets (no Worker code yet).
+// Astro builds to dist/: the static pages are served as Workers static assets, and the
+// account area (/connexion/, /compte/, /admin/) runs in the Worker (Astro's Cloudflare
+// adapter fills in "main" and the ASSETS binding).
 // html_handling keeps the WordPress-style trailing-slash URLs (/prestations/).
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "les-drones-lyonnais-site-2",
   "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "directory": "./dist",
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "none"
-  }
+  },
+  // Accounts, sign-in links, sessions, orders, invoices, missions, deliverables.
+  // Schema: migrations/. Local copy: npm run db:migrate (in .wrangler/, not committed).
+  // Before deploying: `wrangler d1 create ldl-accounts`, then put its id here.
+  "d1_databases": [{ "binding": "DB", "database_name": "ldl-accounts", "database_id": "local-only", "migrations_dir": "migrations" }],
+  // Private files (invoice PDFs, deliverables), served only to their owner.
+  "r2_buckets": [{ "binding": "FILES", "bucket_name": "ldl-files" }]
+  // Administrators: ADMIN_EMAILS, comma-separated e-mails that become admins on first
+  // sign-in. Not stored here: locally in .dev.vars (not committed), in production as a
+  // secret (`npx wrangler secret put ADMIN_EMAILS`).
 }
