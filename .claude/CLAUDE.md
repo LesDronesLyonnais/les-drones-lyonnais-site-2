@@ -95,8 +95,12 @@ public/            fonts, favicon, robots.txt
   .env). Check frames before encoding; regenerate a take that looks off. Illustrated SVG avatars and WebGL-warped photos were tried and
   rejected by the client. Illustrated or traced avatars were tried
   and rejected by the client: keep real photos.
-- Coverage: pinned map of France (src/data/france-map.ts, IGN Admin Express, Licence
-  ouverte — keep the credit) zooming to Lyon on scroll; "Toute la France" overrides.
+- Coverage (2026-11-17, client request): CoverageMap.astro, the dotted map of France taken
+  from les-formateurs-ia.fr, in LDL gold on black. Two views, CSS only (radio + :has()):
+  "Au départ de Lyon" (100 km zone, arcs from Lyon to 8 big cities, lights travelling) and
+  "Toute la France" (the country lights up, waves from Lyon). Data: src/data/coverage-map.ts.
+  The commitments follow in their own section (Commitments.astro). The former pinned
+  zooming map (src/data/france-map.ts, IGN Admin Express) is no longer used.
 - Reveals fire once (`data-reveal` + `src/lib/reveal.ts`, the only client script).
 - Scroll-linked effects are native CSS scroll-driven animations inside
   `@supports (animation-timeline: …)`, always written with longhands

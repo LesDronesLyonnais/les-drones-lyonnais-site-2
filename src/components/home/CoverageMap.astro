@@ -1,0 +1,477 @@
+---
+// "Basés à Lyon, au plus près de vos projets": a dotted map of France, after the map on
+// les-formateurs-ia.fr. Two views, CSS only (radio inputs + :has()):
+// - "Au départ de Lyon" (default): our base with its 100 km zone, arcs drawn from Lyon
+//   to the big cities, a light travelling along each arc;
+// - "Toute la France": the whole country lights up in gold, waves spread from Lyon.
+// Arcs and nodes appear once, with the section's reveal (.is-in from lib/reveal.ts).
+import Square from '../ui/Square.astro';
+import { COVERAGE_MAP } from '../../data/coverage-map';
+
+const { viewBox, outline, lyon, ring100km, cities } = COVERAGE_MAP;
+const [vx, vy, vw, vh] = viewBox.split(' ').map(Number);
+
+// A gentle arc from Lyon to each city, always bowing the same way.
+const arc = (x: number, y: number) => {
+  const mx = (lyon.x + x) / 2;
+  const my = (lyon.y + y) / 2;
+  const dx = x - lyon.x;
+  const dy = y - lyon.y;
+  return `M${lyon.x},${lyon.y} Q${(mx - dy * 0.2).toFixed(1)},${(my + dx * 0.2).toFixed(1)} ${x},${y}`;
+};
+const label = (c: (typeof cities)[number]) =>
+  c.label === 'top'
+    ? { x: c.x, y: c.y - 30, anchor: 'middle' }
+    : c.label === 'top-end'
+    ? { x: c.x + 14, y: c.y - 28, anchor: 'end' }
+    : { x: c.label === 'start' ? c.x + 26 : c.x - 26, y: c.y + 10, anchor: c.label };
+
+const POINTS = [
+  { name: 'Lyon', note: 'notre base' },
+  { name: 'Région lyonnaise', note: '100 km autour' },
+  { name: 'Grandes villes', note: 'Paris, Lille, Marseille…' },
+  { name: 'Toute la France', note: 'avec notre matériel' },
+];
+---
+
+<section aria-labelledby="coverage-title" class="coverage bg-ink text-white">
+  <div class="wrap grid items-center gap-14 py-[clamp(80px,10vw,128px)] lg:grid-cols-[5fr_6fr] lg:gap-16">
+    <div>
+      <h2 id="coverage-title" class="display flex items-start gap-4 text-[clamp(2.1rem,4vw,3.4rem)]" data-reveal>
+        <Square color="var(--color-gold)" class="mt-[0.2em] size-3.5 shrink-0 md:size-4" />Basés à Lyon, au plus près de vos projets
+      </h2>
+      <p class="mt-7 max-w-[46ch] text-lg leading-relaxed text-white/70" data-reveal style="--i: 1">
+        Nous nous déplaçons dans toute la France avec notre matériel professionnel. Notre connaissance des réglementations locales rend chaque tournage et chaque inspection fluides.
+      </p>
+
+      <fieldset class="modes mt-9" data-reveal style="--i: 2">
+        <legend class="sr-only">Afficher sur la carte</legend>
+        <span class="mode-indicator" aria-hidden="true"></span>
+        <label>
+          <input type="radio" name="coverage-view" value="lyon" checked />
+          <span class="mode-name">Au départ de Lyon</span>
+          <span class="mode-sub">Notre base, 100 km autour</span>
+        </label>
+        <label>
+          <input type="radio" name="coverage-view" value="france" />
+          <span class="mode-name">Toute la France</span>
+          <span class="mode-sub">Partout sur le territoire</span>
+        </label>
+      </fieldset>
+
+      <ul class="points mt-8" aria-label="Où nous intervenons">
+        {
+          POINTS.map((p, i) => (
+            <li data-reveal style={{ '--i': 3 + i }}>
+              <span class="point-name">{p.name}</span>
+              <span class="point-note">{p.note}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <div class="map" data-reveal style="--i: 1">
+      <svg viewBox={viewBox} role="img" aria-labelledby="coverage-desc">
+        <desc id="coverage-desc">
+          Carte de France : notre base à Lyon et sa région dans un rayon de 100 km, et des missions dans toutes les grandes villes et partout en France.
+        </desc>
+        <defs>
+          <pattern id="cov-dots" width="17" height="17" patternUnits="userSpaceOnUse">
+            <circle cx="8.5" cy="8.5" r="2.1" fill="rgb(255 255 255 / 0.2)"></circle>
+          </pattern>
+          <linearGradient id="cov-gold" x1="0" y1="0" x2="900" y2="960" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#fff1d6"></stop>
+            <stop offset=".4" stop-color="#e2b979"></stop>
+            <stop offset=".7" stop-color="#af854a"></stop>
+            <stop offset="1" stop-color="#f3d7a6"></stop>
+          </linearGradient>
+          <!-- Lit dots: one gradient across the whole country, seen through a dot mask. -->
+          <pattern id="cov-dots-mask" width="17" height="17" patternUnits="userSpaceOnUse">
+            <circle cx="8.5" cy="8.5" r="2.7" fill="#fff"></circle>
+          </pattern>
+          <mask id="cov-lit">
+            <path d={outline} fill="url(#cov-dots-mask)"></path>
+          </mask>
+          <linearGradient id="cov-arc" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#af854a"></stop>
+            <stop offset=".5" stop-color="#e2b979"></stop>
+            <stop offset="1" stop-color="#fff1d6"></stop>
+          </linearGradient>
+          <radialGradient id="cov-node">
+            <stop offset="0" stop-color="#fff"></stop>
+            <stop offset=".45" stop-color="#ecc98f"></stop>
+            <stop offset="1" stop-color="#af854a"></stop>
+          </radialGradient>
+          <radialGradient id="cov-zone">
+            <stop offset="0" stop-color="#e2b979" stop-opacity=".32"></stop>
+            <stop offset="1" stop-color="#af854a" stop-opacity=".06"></stop>
+          </radialGradient>
+          <clipPath id="cov-clip">
+            <path d={outline}></path>
+          </clipPath>
+          <filter id="cov-glow" x="-100%" y="-100%" width="300%" height="300%">
+            <feGaussianBlur stdDeviation="7"></feGaussianBlur>
+          </filter>
+        </defs>
+
+        <path d={outline} fill="url(#cov-dots)"></path>
+
+        <!-- Toute la France: the whole country lights up, waves travel out from Lyon. -->
+        <g class="remote">
+          <rect x={vx} y={vy} width={vw} height={vh} fill="url(#cov-gold)" mask="url(#cov-lit)"></rect>
+          <g clip-path="url(#cov-clip)">
+            {[0, 1, 2].map((w) => <circle class="wave" cx={lyon.x} cy={lyon.y} r="620" style={{ '--w': w }} />)}
+          </g>
+        </g>
+
+        <path d={outline} class="france-edge"></path>
+
+        <!-- Au départ de Lyon: the 100 km zone and an arc to each big city. -->
+        <g class="onsite">
+          <g class="zone" style="--i: 0">
+            <circle cx={lyon.x} cy={lyon.y} r={ring100km} class="zone-fill"></circle>
+            <circle cx={lyon.x} cy={lyon.y} r={ring100km} class="zone-edge"></circle>
+            <text class="zone-label" x={lyon.x} y={lyon.y + ring100km + 34} text-anchor="middle">100 km</text>
+          </g>
+          {cities.map((c, i) => <path d={arc(c.x, c.y)} class="arc" pathLength="1" style={{ '--i': i }} />)}
+          {cities.map((c, i) => <circle r="5" class="pulse" style={`offset-path: path('${arc(c.x, c.y)}'); --i: ${i}`} />)}
+        </g>
+
+        {
+          cities.map((c, i) => {
+            const l = label(c);
+            return (
+              <g class="node" style={{ '--i': i + 1 }}>
+                <circle cx={c.x} cy={c.y} r="14" class="halo" />
+                <circle cx={c.x} cy={c.y} r="6" fill="url(#cov-node)" />
+                <text class="label" x={l.x} y={l.y} text-anchor={l.anchor}>
+                  {c.name}
+                </text>
+              </g>
+            );
+          })
+        }
+        <g class="node" style="--i: 0">
+          <circle cx={lyon.x} cy={lyon.y} r="26" class="halo"></circle>
+          <circle cx={lyon.x} cy={lyon.y} r="11" fill="url(#cov-node)"></circle>
+          <circle cx={lyon.x} cy={lyon.y} r="12" class="hq-ring"></circle>
+          <text class="label hq-label" x={lyon.x + 30} y={lyon.y + 12} text-anchor="start">Lyon</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<style>
+  .coverage {
+    overflow: hidden;
+  }
+
+  /* ---------- View switch ---------- */
+  .modes {
+    position: relative;
+    display: inline-grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 4px;
+    border: 1px solid rgb(255 255 255 / 0.3);
+  }
+  .mode-indicator {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    width: calc(50% - 4px);
+    background: #fff;
+    transition: transform 320ms var(--ease-out-strong);
+  }
+  .coverage:has(input[value='france']:checked) .mode-indicator {
+    transform: translateX(100%);
+  }
+  .modes label {
+    position: relative;
+    display: grid;
+    gap: 2px;
+    min-height: 44px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: color 240ms ease;
+  }
+  .modes input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .modes label:has(input:checked) {
+    color: var(--color-ink);
+  }
+  .modes label:has(input:focus-visible) {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 3px;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .modes label:not(:has(input:checked)):hover .mode-name {
+      color: var(--color-gold);
+    }
+  }
+  .mode-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    transition: color 200ms ease;
+  }
+  .mode-sub {
+    font-size: 0.85rem;
+    opacity: 0.7;
+  }
+
+  /* ---------- Points list ---------- */
+  .points {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, max-content));
+    gap: 14px 40px;
+  }
+  .points li {
+    display: grid;
+    grid-template-columns: 10px auto;
+    align-items: center;
+    column-gap: 12px;
+  }
+  .points li::before {
+    content: '';
+    grid-row: span 2;
+    width: 10px;
+    height: 10px;
+    background: linear-gradient(135deg, #fff1d6, var(--color-gold));
+  }
+  .point-name {
+    font-size: 1.2rem;
+    font-weight: 700;
+  }
+  .point-note {
+    font-size: 0.85rem;
+    color: rgb(255 255 255 / 0.55);
+  }
+
+  /* ---------- Map ---------- */
+  .map {
+    width: 100%;
+    max-width: 680px;
+    margin-inline: auto;
+    padding-inline: 2%;
+  }
+  .map svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  .france-edge {
+    fill: none;
+    stroke: rgb(255 255 255 / 0.3);
+    stroke-width: 1.6;
+    stroke-dasharray: 1 7;
+    stroke-linecap: round;
+    transition: stroke 500ms ease;
+  }
+  .remote {
+    opacity: 0;
+    transition: opacity 700ms ease;
+  }
+  .onsite {
+    transition: opacity 500ms ease;
+  }
+  .coverage:has(input[value='france']:checked) .remote {
+    opacity: 1;
+  }
+  .coverage:has(input[value='france']:checked) .onsite {
+    opacity: 0.18;
+  }
+  .coverage:has(input[value='france']:checked) .france-edge {
+    stroke: rgb(255 255 255 / 0.6);
+  }
+  .wave {
+    fill: none;
+    stroke: url(#cov-gold);
+    stroke-width: 7;
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+    transform: scale(0.02);
+  }
+  .coverage:has(input[value='france']:checked) .wave {
+    animation: cov-wave 4.2s var(--ease-out-strong) infinite;
+    animation-delay: calc(var(--w) * 1.4s);
+  }
+  @keyframes cov-wave {
+    from {
+      opacity: 0.9;
+      transform: scale(0.02);
+    }
+    to {
+      opacity: 0;
+      transform: scale(1);
+    }
+  }
+
+  .zone-fill {
+    fill: url(#cov-zone);
+  }
+  .zone-edge {
+    fill: none;
+    stroke: url(#cov-arc);
+    stroke-width: 2;
+    stroke-dasharray: 4 6;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: cov-turn 30s linear infinite;
+  }
+  @keyframes cov-turn {
+    to {
+      transform: rotate(1turn);
+    }
+  }
+  .zone-label {
+    paint-order: stroke;
+    stroke: var(--color-ink);
+    stroke-width: 6;
+    stroke-linejoin: round;
+    font-size: 24px;
+    font-weight: 700;
+    fill: var(--color-gold);
+    letter-spacing: 0.04em;
+  }
+  .arc {
+    fill: none;
+    stroke: url(#cov-arc);
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+  .pulse {
+    display: none;
+  }
+  .halo {
+    fill: var(--color-gold);
+    opacity: 0.35;
+    filter: url(#cov-glow);
+  }
+  .label {
+    font-size: 30px;
+    font-weight: 600;
+    fill: #fff;
+    paint-order: stroke;
+    stroke: var(--color-ink);
+    stroke-width: 6;
+    stroke-linejoin: round;
+  }
+  .hq-label {
+    font-size: 38px;
+    font-weight: 800;
+    font-stretch: 118%;
+  }
+  .hq-ring {
+    fill: none;
+    stroke: #ecc98f;
+    stroke-width: 2;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: cov-ring 2.8s var(--ease-out-strong) infinite;
+  }
+  @keyframes cov-ring {
+    from {
+      opacity: 0.9;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(3.2);
+    }
+  }
+
+  /* Entrance, once (the map's data-reveal adds .is-in): arcs draw out from Lyon, then
+     the zone and the cities appear, then a light starts travelling along each arc. */
+  :global(.js) .map .arc {
+    stroke-dashoffset: 1;
+    transition: stroke-dashoffset 1.3s var(--ease-out-strong);
+    transition-delay: calc(0.5s + var(--i) * 0.12s);
+  }
+  :global(.js) .map.is-in .arc {
+    stroke-dashoffset: 0;
+  }
+  :global(.js) .map .zone,
+  :global(.js) .map .node {
+    opacity: 0;
+    transition: opacity 600ms ease;
+    transition-delay: calc(1s + var(--i) * 0.12s);
+  }
+  :global(.js) .map.is-in .zone,
+  :global(.js) .map.is-in .node {
+    opacity: 1;
+  }
+  :global(.js) .map.is-in .pulse {
+    display: block;
+    fill: #fff;
+    offset-rotate: 0deg;
+    opacity: 0;
+    animation: cov-travel 2.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+    animation-delay: calc(2s + var(--i) * 0.4s);
+  }
+  @keyframes cov-travel {
+    0% {
+      offset-distance: 0%;
+      opacity: 0;
+    }
+    15%,
+    85% {
+      opacity: 1;
+    }
+    100% {
+      offset-distance: 100%;
+      opacity: 0;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .modes {
+      display: grid;
+      width: 100%;
+    }
+    .modes label {
+      padding: 10px 14px;
+    }
+    .points {
+      grid-template-columns: 1fr 1fr;
+      gap: 14px 20px;
+    }
+    .label {
+      font-size: 40px;
+    }
+    .hq-label {
+      font-size: 46px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mode-indicator,
+    :global(.js) .map .arc,
+    :global(.js) .map .zone,
+    :global(.js) .map .node {
+      transition: none;
+    }
+    .zone-edge,
+    .hq-ring,
+    .coverage:has(input[value='france']:checked) .wave,
+    :global(.js) .map.is-in .pulse {
+      animation: none;
+    }
+    .hq-ring,
+    :global(.js) .map.is-in .pulse {
+      display: none;
+    }
+    .coverage:has(input[value='france']:checked) .wave:first-child {
+      opacity: 0.4;
+      transform: scale(0.5);
+    }
+  }
+</style>
