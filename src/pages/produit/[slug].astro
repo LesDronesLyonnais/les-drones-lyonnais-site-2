@@ -91,7 +91,9 @@ const cartSuggest = rent ? null : JSON.stringify(await Promise.all(crossSell.fil
 // Pop's advice for this product.
 const isDrone = product.categories.includes('drones');
 const permis = page.permis;
-const advice = permis?.requirement ? `${permis.requirement}${permis.requirementDetail ? ` : ${permis.requirementDetail}` : ''}.` : cls ? classAdvice(cls) : undefined;
+const need = (p: NonNullable<typeof permis>) => (p.requirement ? `${p.requirement}${p.requirementDetail ? ` : ${p.requirementDetail}` : ''}.` : '');
+// Two classes (C2 and C6): either licence, said as "ou".
+const advice = permis?.requirement ? (page.permisOr?.requirement ? `${need(permis)} Ou bien : ${need(page.permisOr)}` : need(permis)) : cls ? classAdvice(cls) : undefined;
 // Pop's advice, shown once as its own section (PopAdvice): the team's own words for this
 // product when they exist, otherwise the most useful general advice.
 const fallback = cls && !permis

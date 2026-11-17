@@ -3,6 +3,8 @@
 // Prices are stored excluding VAT (HT), as on the current site; rentals are per day.
 import type { ImageMetadata } from 'astro';
 import raw from './catalog.json';
+import { EXTRA_PRODUCTS, EXTRA_PAGES } from './catalog-extra';
+import { officialPermis } from './regulation';
 
 export type ProductKind = 'vente' | 'location';
 
@@ -20,7 +22,7 @@ export interface Product {
 
 // WooCommerce stores some slugs percent-encoded (″ in a name): decode them so the pages
 // are generated at the same URLs as on the current site.
-export const PRODUCTS = (raw as Product[]).map((p) => ({ ...p, slug: decodeURIComponent(p.slug) }));
+export const PRODUCTS = [...(raw as Product[]), ...EXTRA_PRODUCTS].map((p) => ({ ...p, slug: decodeURIComponent(p.slug) }));
 export const productUrl = (p: Product) => `/produit/${p.slug}/`;
 
 const files = import.meta.glob<{ default: ImageMetadata }>('../assets/products/*.webp', { eager: true });
@@ -59,9 +61,14 @@ export const RENTAL_FILTERS: Filter[] = [
 
 /** EASA drone class shown as a badge on shop drones. */
 export const droneClass = (p: Product) => {
-  const order = ['c6', 'c5', 'c3', 'c2', 'c1', 'co_c1', 'c0'];
-  const c = order.find((k) => p.categories.includes(k));
-  return c ? (c === 'co_c1' ? 'C0/C1' : c.toUpperCase()) : null;
+  const label = (order: string[]) => {
+    const c = order.find((k) => p.categories.includes(k));
+    return c ? (c === 'co_c1' ? 'C0/C1' : c.toUpperCase()) : null;
+  };
+  const specific = label(['c6', 'c5']);
+  const open = label(['c3', 'c2', 'c1', 'co_c1', 'c0']);
+  // Both an Open and a Specific class (Matrice 5T: C2 and C6) → "C2 / C6".
+  return specific && open ? `${open} / ${specific}` : (specific ?? open);
 };
 
 // Catalogue order: as the filters list them (drones first), then by price, highest first.
@@ -181,19 +188,28 @@ export interface ProductPage {
   know?: { title?: string; text?: string }[];
   pop?: string[];
   forWho?: { title: string; text: string }[];
-  permis?: {
-    category: string;
-    cls: string;
-    scenario?: string;
-    allowsTitle?: string;
-    allows: string[];
-    requirement?: string;
-    requirementDetail?: string;
-    formation?: { level: string; family: string; text?: string };
-  };
+  permis?: Permis;
+  /** A drone with two classes (C2 and C6): either licence is enough, shown as "ou". */
+  permisOr?: Permis;
 }
-const PAGES = pagesRaw as Record<string, ProductPage>;
-export const productPage = (p: Product): ProductPage => PAGES[p.slug] ?? {};
+export interface Permis {
+  category: string;
+  cls: string;
+  scenario?: string;
+  allowsTitle?: string;
+  allows: string[];
+  requirement?: string;
+  requirementDetail?: string;
+  formation?: { level: string; family: string; text?: string };
+}
+const PAGES = { ...(pagesRaw as Record<string, ProductPage>), ...EXTRA_PAGES };
+// "Quel permis ?" always shows the official content of the drone's class
+// (data/regulation.ts), never the imported text; products that are not drones get none.
+export const productPage = (p: Product): ProductPage => {
+  const page = PAGES[p.slug] ?? {};
+  const drone = p.categories.includes('drones');
+  return { ...page, permis: drone ? officialPermis(page.permis) : undefined, permisOr: drone ? officialPermis(page.permisOr) : undefined };
+};
 
 const key = (s: string) => norm(s).replace(/[^a-z0-9]+/g, ' ').trim();
 /** Products named in "Complétez votre équipement", found in the catalogue. */

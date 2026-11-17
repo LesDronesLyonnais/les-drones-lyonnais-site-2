@@ -149,9 +149,11 @@ const tabs = await Promise.all(
   .shop-hero {
     background: var(--color-mist);
   }
+  /* Not clipped (only the ribbons are), and above the menu: the search results
+     drop down over the category tiles. */
   .top {
     position: relative;
-    overflow: hidden;
+    z-index: 2;
     padding: 104px 0 36px;
     background:
       radial-gradient(ellipse at 80% 0%, rgb(175 133 74 / 0.22), transparent 55%),
@@ -191,6 +193,7 @@ const tabs = await Promise.all(
     position: absolute;
     inset: 0;
     pointer-events: none;
+    overflow: hidden;
   }
   .float {
     position: absolute;

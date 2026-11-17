@@ -50,16 +50,13 @@ const formationHref = (f?: { level: string; family: string }) => {
   const tech = /TECHNIQUE/i.test(f.family);
   return `/formations-drone-a-lyon/#${spec ? (tech ? 'cats-btp' : 'cats-media') : tech ? 'open-bapd-btp' : 'open-bapd-media'}`;
 };
-const permisPose: PopPose = permis
-  ? /CATS/i.test(permis.requirement ?? '')
-    ? 'permis-cats'
-    : /BAPD/i.test(permis.requirement ?? '')
-      ? 'permis-bapd'
-      : 'permis-a1-a3'
-  : 'assis';
+type Permis = NonNullable<typeof permis>;
+const permisPose = (p: Permis): PopPose => (/CATS/i.test(p.requirement ?? '') ? 'permis-cats' : /BAPD/i.test(p.requirement ?? '') ? 'permis-bapd' : 'permis-a1-a3');
 const cap = (s: string) => s.charAt(0) + s.slice(1).toLowerCase();
 // "A1/A3 + formation pratique + examen OPEN A2" → three steps.
-const path = permis?.requirementDetail?.split('+').map((s) => s.trim()).filter(Boolean) ?? [];
+const pathOf = (p: Permis) => p.requirementDetail?.split('+').map((s) => s.trim()).filter(Boolean) ?? [];
+// A drone with two classes (C2 and C6) gets one row per class: either licence is enough.
+const permisOptions = permis ? [permis, ...(page.permisOr ? [page.permisOr] : [])] : [];
 ---
 
 {
@@ -194,58 +191,72 @@ const path = permis?.requirementDetail?.split('+').map((s) => s.trim()).filter(B
           Quel permis ?
         </h2>
 
-        <div class="permis-grid mt-12">
-          <div class="permis-id" data-reveal>
-            <span class="class-ring">
-              <svg viewBox="0 0 120 120" aria-hidden="true">
-                <circle cx="60" cy="60" r="54" class="ring-track" />
-                <circle cx="60" cy="60" r="54" class="ring-fill" pathLength="1" />
-              </svg>
-              <span class="permis-class">{permis.cls}</span>
-            </span>
-            <ul class="permis-tags">
-              <li>Catégorie {cap(permis.category)}</li>
-              <li>EASA</li>
-              {permis.scenario && <li>Scénario {permis.scenario}</li>}
-            </ul>
-          </div>
-
-          <div class="permis-allows" data-reveal style={{ '--i': 1 }}>
-            {permis.allowsTitle && <h3 class="permis-h">{permis.allowsTitle}</h3>}
-            <ul>
-              {permis.allows.map((a, i) => (
-                <li style={{ '--k': i }}>
-                  <svg viewBox="0 0 20 20" class="check" aria-hidden="true">
-                    <path d="M4 10.5 8 14.5 16 6" pathLength="1" />
-                  </svg>
-                  {a}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div class="permis-need" data-reveal style={{ '--i': 2 }}>
-            <Image src={popPoses[`../../assets/pop/${permisPose}.webp`].default} alt="" width={120} densities={[1, 2]} class="permis-pop" />
-            {permis.requirement && <h3 class="permis-h">{permis.requirement}</h3>}
-            {path.length > 1 ? (
-              <ol class="steps" aria-label="Le parcours">
-                {path.map((step, i) => (
-                  <li style={{ '--k': i }}>
-                    <span class="step-num hud-text">{pad(i)}</span>
-                    {step}
-                  </li>
-                ))}
-              </ol>
-            ) : (
-              permis.requirementDetail && <p class="permis-detail">{permis.requirementDetail}</p>
+        {permisOptions.length > 1 && (
+          <p class="permis-or-intro" data-reveal>
+            Ce drone a deux classes : <strong>{permisOptions.map((p) => p.cls).join(' et ')}</strong>. Selon vos missions, vous le pilotez avec l’un <em>ou</em> l’autre de ces permis.
+          </p>
+        )}
+        {permisOptions.map((p, i) => (
+          <>
+            {i > 0 && (
+              <p class="permis-or hud-text">
+                <span>ou</span>
+              </p>
             )}
-            {permis.formation?.text && <p class="permis-detail">{permis.formation.text}</p>}
-            <Button href={formationHref(permis.formation)} size="sm" class="mt-5">
-              Voir la formation {permis.formation ? `${cap(permis.formation.level)}, ${permis.formation.family.toLowerCase()}` : ''}
-            </Button>
-          </div>
+            <div class:list={['permis-grid', i === 0 ? 'mt-12' : 'mt-0']}>
+              <div class="permis-id" data-reveal>
+                <span class="class-ring">
+                  <svg viewBox="0 0 120 120" aria-hidden="true">
+                    <circle cx="60" cy="60" r="54" class="ring-track" />
+                    <circle cx="60" cy="60" r="54" class="ring-fill" pathLength="1" />
+                  </svg>
+                  <span class="permis-class">{p.cls}</span>
+                </span>
+                <ul class="permis-tags">
+                  <li>Catégorie {cap(p.category)}</li>
+                  <li>EASA</li>
+                  {p.scenario && <li>Scénario {p.scenario}</li>}
+                </ul>
+              </div>
 
-        </div>
+              <div class="permis-allows" data-reveal style={{ '--i': 1 }}>
+                {p.allowsTitle && <h3 class="permis-h">{p.allowsTitle}</h3>}
+                <ul>
+                  {p.allows.map((a, i) => (
+                    <li style={{ '--k': i }}>
+                      <svg viewBox="0 0 20 20" class="check" aria-hidden="true">
+                        <path d="M4 10.5 8 14.5 16 6" pathLength="1" />
+                      </svg>
+                      {a}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div class="permis-need" data-reveal style={{ '--i': 2 }}>
+                <Image src={popPoses[`../../assets/pop/${permisPose(p)}.webp`].default} alt="" width={120} densities={[1, 2]} class="permis-pop" />
+                {p.requirement && <h3 class="permis-h">{p.requirement}</h3>}
+                {pathOf(p).length > 1 ? (
+                  <ol class="steps" aria-label="Le parcours">
+                    {pathOf(p).map((step, i) => (
+                      <li style={{ '--k': i }}>
+                        <span class="step-num hud-text">{pad(i)}</span>
+                        {step}
+                      </li>
+                    ))}
+                  </ol>
+                ) : (
+                  p.requirementDetail && <p class="permis-detail">{p.requirementDetail}</p>
+                )}
+                {p.formation?.text && <p class="permis-detail">{p.formation.text}</p>}
+                <Button href={formationHref(p.formation)} size="sm" class="mt-5">
+                  Voir la formation {p.formation ? `${cap(p.formation.level)}, ${p.formation.family.toLowerCase()}` : ''}
+                </Button>
+              </div>
+
+            </div>
+          </>
+        ))}
       </div>
     </section>
   )
@@ -614,6 +625,40 @@ const path = permis?.requirementDetail?.split('+').map((s) => s.trim()).filter(B
   }
 
   /* ---------- Quel permis ? ---------- */
+  .permis-or-intro {
+    max-width: 62ch;
+    margin-top: 20px;
+    font-size: 1.1rem;
+    line-height: 1.5;
+    color: var(--color-ink-soft);
+  }
+  .permis-or-intro strong {
+    color: var(--color-ink);
+  }
+  /* "ou" between the two classes' rows: a rule with the word in the middle. */
+  .permis-or {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-block: 36px;
+    font-size: 15px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--color-formations);
+  }
+  /* Cards side by side: room below for Pop, who peeks over the next row's last card. */
+  @media (min-width: 1024px) {
+    .permis-or {
+      margin-bottom: 104px;
+    }
+  }
+  .permis-or::before,
+  .permis-or::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--color-line);
+  }
   .permis-grid {
     display: grid;
     gap: 20px;
