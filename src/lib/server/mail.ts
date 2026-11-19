@@ -1,13 +1,13 @@
 // E-mails through Brevo (the provider the LDL Academy app already uses), transactional
-// API v3. The key is a Worker secret, BREVO_API_KEY (Cloudflare dashboard, or
-// `wrangler secret put` / `wrangler preview secret put`), never in the repo. Without it
+// API v3. The key is a Worker secret, BREVO_API_KEY_SITE (as the client named it in the
+// Cloudflare dashboard; BREVO_API_KEY also read), never in the repo. Without it
 // nothing is sent and the reason is logged: the pages keep working.
 // One sender address (MAIL_FROM, default SITE.email, verified in Brevo) with a name per
 // audience, as the client asked: LDL Prestations / Formations / Boutique / Location.
 import { env } from 'cloudflare:workers';
 import { SITE } from '../../data/site';
 
-type MailEnv = { BREVO_API_KEY?: string; MAIL_FROM?: string; CONTACT_NOTIFY_TO?: string };
+type MailEnv = { BREVO_API_KEY_SITE?: string; BREVO_API_KEY?: string; MAIL_FROM?: string; CONTACT_NOTIFY_TO?: string };
 const conf = () => env as unknown as MailEnv;
 
 export const SENDER_NAME = {
@@ -32,9 +32,9 @@ export interface Mail {
 }
 
 export async function sendMail(mail: Mail): Promise<boolean> {
-  const key = conf().BREVO_API_KEY;
+  const key = conf().BREVO_API_KEY_SITE || conf().BREVO_API_KEY;
   if (!key) {
-    console.log(`[mail] BREVO_API_KEY absent, e-mail non envoyé : ${mail.subject}`);
+    console.log(`[mail] BREVO_API_KEY_SITE absent, e-mail non envoyé : ${mail.subject}`);
     return false;
   }
   try {

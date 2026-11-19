@@ -266,8 +266,9 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   provider, transactional API): the team gets the request (reply-to = visitor), the visitor
   an acknowledgement, sender name by activity (LDL Prestations / Formations / Boutique /
   Location, "Les Drones Lyonnais" otherwise), one sender address MAIL_FROM (default
-  SITE.email, verified in Brevo). Worker secret BREVO_API_KEY (set by the client in the
-  Cloudflare dashboard; previews need it too via `wrangler preview secret put`); without
+  SITE.email, verified in Brevo). Worker secret BREVO_API_KEY_SITE (set by the client in the
+  Cloudflare dashboard on 2026-11-19, expires 2027-11-19 — a reminder is scheduled for
+  2027-10-19; previews need it too via `wrangler preview secret put`); without
   it nothing is sent and the reason is logged. Optional vars: MAIL_FROM,
   CONTACT_NOTIFY_TO. Address / hours in data/site.ts.
 
