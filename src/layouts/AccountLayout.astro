@@ -29,7 +29,7 @@ const tabs = !user
 const current = (href: string) => (href === '/admin/' ? path.startsWith('/admin/') : user?.role !== 'admin' ? path.startsWith(href) : path === href);
 ---
 
-<BaseLayout title={`${title} | Les Drones Lyonnais`} description="Espace client Les Drones Lyonnais." noindex>
+<BaseLayout title={`${title} | Les Drones Lyonnais`} description="Espace client Les Drones Lyonnais." noindex activity="general">
   <section class="acc">
     {
       user ? (

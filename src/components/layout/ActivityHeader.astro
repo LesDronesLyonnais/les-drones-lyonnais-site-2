@@ -16,25 +16,33 @@ import ldlBoutique from '../../assets/brand/ldl-boutique.png';
 import ldlLocation from '../../assets/brand/ldl-location.png';
 import { ACTIVITIES, NAV, SITE, type ActivityId } from '../../data/site';
 
-interface Props {
-  activity: ActivityId;
-}
-const { activity } = Astro.props;
+/** An activity, or 'general' for pages that belong to none (account area, contact). */
+export type HeaderVariant = ActivityId | 'general';
 
-// Colours, logos and buttons of the WordPress headers.
+interface Props {
+  activity: HeaderVariant;
+  /** Menu item to mark as the current page when it is not the activity (the contact page). */
+  current?: 'contact';
+}
+const { activity, current: currentItem } = Astro.props;
+
+// Colours, logos and buttons of the WordPress headers. 'general' is the WordPress header
+// of Mon compte and Contact: "| LES DRONES LYONNAIS" in black, blue-dot logo, black
+// "Contactez-nous" button with the chat icon.
 const BRAND = {
   prestations: { color: '#0835bd', logo: ldlPrestations, cta: 'Demander un conseil', chat: false },
   formations: { color: '#296321', logo: ldlFormations, cta: 'Demander un conseil', chat: false },
   boutique: { color: '#04082d', logo: ldlBoutique, cta: 'Conseil & devis', chat: true },
   location: { color: '#e25d02', logo: ldlLocation, cta: 'Réserver maintenant', chat: false },
+  general: { color: '#000000', logo: ldlPrestations, cta: 'Contactez-nous', chat: true },
 } as const;
 const brand = BRAND[activity];
-const current = ACTIVITIES[activity];
+const current = activity === 'general' ? { label: SITE.name, href: '/' } : ACTIVITIES[activity];
 
 const items = [
   { label: 'Accueil', href: '/', current: false },
   ...NAV.map((a) => ({ label: a.label, href: a.href, current: a.id === activity })),
-  { label: 'Contact', href: SITE.contactPath, current: false },
+  { label: 'Contact', href: SITE.contactPath, current: currentItem === 'contact' },
 ];
 ---
 

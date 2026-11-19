@@ -2,7 +2,7 @@
 import '../styles/global.css';
 import SEOHead from '../components/seo/SEOHead.astro';
 import Header from '../components/layout/Header.astro';
-import ActivityHeader from '../components/layout/ActivityHeader.astro';
+import ActivityHeader, { type HeaderVariant } from '../components/layout/ActivityHeader.astro';
 import Footer from '../components/layout/Footer.astro';
 import PopChat, { type PopContext } from '../components/layout/PopChat.astro';
 import CartDrawer from '../components/shop/CartDrawer.astro';
@@ -21,9 +21,9 @@ interface Props {
   pop?: PopContext;
   /** Homepage: default mode of the page (see lib/mode.ts). */
   mode?: ActivityId;
-  /** Activity page: the WordPress-style header of that activity (ActivityHeader), solid,
-   *  above the hero. Replaces headerOverlay / headerCompact. */
-  activity?: ActivityId;
+  /** The WordPress-style header (ActivityHeader) of this activity, or 'general' for pages
+   *  of none (account area): solid, above the page. Replaces headerOverlay / headerCompact. */
+  activity?: HeaderVariant;
 }
 
 const { title, description, image, noindex, headerOverlay = false, headerCompact = false, mode, activity } = Astro.props;

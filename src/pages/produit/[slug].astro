@@ -117,7 +117,7 @@ const popAdvice = {
 };
 ---
 
-<BaseLayout title={title} description={description} pop={{ page: 'produit', product: { name: product.name, kind: product.kind, cls, advice } }}>
+<BaseLayout title={title} description={description} pop={{ page: 'produit', product: { name: product.name, kind: product.kind, cls, advice } }} activity={rent ? 'location' : 'boutique'}>
   {structuredData.map((d) => <JsonLd slot="head" data={d} />)}
 
   <section class="wrap pt-8 pb-16 md:pt-12 md:pb-24" aria-labelledby="product-title">

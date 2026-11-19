@@ -76,7 +76,7 @@ const structuredData = [
 ];
 ---
 
-<BaseLayout title={`${service.label} à Lyon | ${SITE.name}`} description={page.description} pop={{ page: 'prestations' }}>
+<BaseLayout title={`${service.label} à Lyon | ${SITE.name}`} description={page.description} pop={{ page: 'prestations' }} activity="prestations">
   {structuredData.map((d) => <JsonLd slot="head" data={d} />)}
 
   {page.slug === 'nettoyage-par-drone' && <CleaningWash />}

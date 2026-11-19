@@ -159,6 +159,12 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   maintenant; hover: white with coloured text). Colours: #0835bd, #296321, #04082d,
   #e25d02. Burger below 1280px. Heroes read --header-over / --header-solid (global.css) so
   they leave no empty band under the solid bar.
+  Since 2026-11-19 (client request) every page except the homepage uses it: service pages
+  and /timelapse-chantier/ = prestations, product pages = boutique or location (product
+  kind), account area (AccountLayout) = 'general', the WordPress header of Mon compte /
+  Contact ("| LES DRONES LYONNAIS" in black, black "Contactez-nous" button with the chat
+  icon; `current="contact"` for the future contact page). The homepage keeps the
+  transparent Header over its panels (full width since 2026-11-19).
 - Search: /recherche.json (built), lib/search-client.ts, components/shop/SearchBox.astro.
 - Pop (mascot) is everywhere: PopChat (layout, guided assistant, answers in the file,
   contextual per page, opens with [data-pop-open][data-pop-ask]) and PopTip (speech
