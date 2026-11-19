@@ -1,0 +1,255 @@
+---
+// Messages from the contact page (/contact/), newest first: who, about what (activity,
+// subject, what the button carried), the message, and a status the team sets once it has
+// answered. Filters: new / handled / all, and by activity.
+import AccountLayout from '../../layouts/AccountLayout.astro';
+import Square from '../../components/ui/Square.astro';
+import { db } from '../../lib/server/auth';
+import { text } from '../../lib/server/admin';
+import { TOPICS, TOPIC_LABEL, type ContactRequest, type Topic } from '../../lib/server/contact';
+
+export const prerender = false;
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const id = Number(text(form, 'ref', 20));
+  const action = text(form, 'action', 20);
+  // Back to the same filters, with the confirmation message.
+  const back = (message: string) => {
+    const q = new URLSearchParams(Astro.url.search);
+    q.delete('ok');
+    q.set('ok', message);
+    return `/admin/demandes/?${q}`;
+  };
+  if (Number.isInteger(id) && action === 'traitee') {
+    await db().prepare("UPDATE contact_requests SET status = 'traitee' WHERE id = ?").bind(id).run();
+    return Astro.redirect(back('Demande marquée comme traitée.'));
+  }
+  if (Number.isInteger(id) && action === 'nouvelle') {
+    await db().prepare("UPDATE contact_requests SET status = 'nouvelle' WHERE id = ?").bind(id).run();
+    return Astro.redirect(back('Demande remise à traiter.'));
+  }
+  if (Number.isInteger(id) && action === 'supprimer') {
+    await db().prepare('DELETE FROM contact_requests WHERE id = ?').bind(id).run();
+    return Astro.redirect(back('Demande supprimée.'));
+  }
+}
+
+const statusParam = Astro.url.searchParams.get('statut') ?? 'nouvelle';
+const status = ['nouvelle', 'traitee', 'toutes'].includes(statusParam) ? statusParam : 'nouvelle';
+const topicParam = Astro.url.searchParams.get('activite') ?? '';
+const topic = TOPICS.some((t) => t.id === topicParam) ? (topicParam as Topic) : '';
+
+const where: string[] = [];
+const args: string[] = [];
+if (status !== 'toutes') {
+  where.push('status = ?');
+  args.push(status);
+}
+if (topic) {
+  where.push('topic = ?');
+  args.push(topic);
+}
+const rows = await db()
+  .prepare(`SELECT * FROM contact_requests ${where.length ? 'WHERE ' + where.join(' AND ') : ''} ORDER BY created_at DESC, id DESC LIMIT 200`)
+  .bind(...args)
+  .all<ContactRequest>();
+const counts = await db().prepare("SELECT SUM(status = 'nouvelle') AS nouvelle, SUM(status = 'traitee') AS traitee, COUNT(*) AS toutes FROM contact_requests").first<Record<string, number | null>>();
+
+const href = (s: string, t: string) => `/admin/demandes/?${new URLSearchParams({ statut: s, ...(t ? { activite: t } : {}) })}`;
+const STATUS_FILTERS = [
+  { id: 'nouvelle', label: 'À traiter' },
+  { id: 'traitee', label: 'Traitées' },
+  { id: 'toutes', label: 'Toutes' },
+];
+const colorOf = (t: Topic) => TOPICS.find((x) => x.id === t)?.color ?? 'var(--color-gold)';
+// created_at is UTC (SQLite datetime('now')): shown in Paris time.
+const when = (iso: string) =>
+  new Date(iso.replace(' ', 'T') + 'Z').toLocaleString('fr-FR', { timeZone: 'Europe/Paris', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+const replyHref = (r: ContactRequest) => `mailto:${r.email}?subject=${encodeURIComponent(`Re : ${r.subject}`)}`;
+---
+
+<AccountLayout title="Demandes de contact" kicker="Administration">
+  <div class="acc-card">
+    <nav class="acc-row" aria-label="Filtrer par état">
+      {
+        STATUS_FILTERS.map((f) => (
+          <a class:list={['filter', status === f.id && 'on']} href={href(f.id, topic)} aria-current={status === f.id ? 'true' : undefined}>
+            {f.label} <span class="n">{counts?.[f.id] ?? 0}</span>
+          </a>
+        ))
+      }
+    </nav>
+    <nav class="acc-row mt-3" aria-label="Filtrer par activité">
+      <a class:list={['filter', !topic && 'on']} href={href(status, '')}>Toutes les activités</a>
+      {
+        TOPICS.map((t) => (
+          <a class:list={['filter', topic === t.id && 'on']} href={href(status, t.id)}>
+            <Square color={t.color} class="size-[8px]" />
+            {TOPIC_LABEL[t.id]}
+          </a>
+        ))
+      }
+    </nav>
+
+    {
+      rows.results.length ? (
+        <ul class="list">
+          {rows.results.map((r) => (
+            <li class:list={['req', r.status === 'traitee' && 'done']}>
+              <div class="head">
+                <span class="topic hud-text">
+                  <Square color={colorOf(r.topic)} class="size-[8px]" />
+                  {TOPIC_LABEL[r.topic]}
+                </span>
+                <span class="when hud-text">{when(r.created_at)}</span>
+              </div>
+              <p class="subject">{r.subject}</p>
+              <p class="who">
+                <strong>{r.name || 'Sans nom'}</strong> ·{' '}
+                <a class="acc-link" href={replyHref(r)}>
+                  {r.email}
+                </a>
+                {r.phone && (
+                  <>
+                    {' '}
+                    ·{' '}
+                    <a class="acc-link" href={`tel:${r.phone.replace(/[^+\d]/g, '')}`}>
+                      {r.phone}
+                    </a>
+                  </>
+                )}
+              </p>
+              {r.context && (
+                <ul class="context">
+                  {r.context.split('\n').map((l) => (
+                    <li>{l}</li>
+                  ))}
+                </ul>
+              )}
+              <p class="message">{r.message}</p>
+              <div class="actions">
+                <a class="acc-btn light" href={replyHref(r)}>
+                  Répondre par e-mail
+                </a>
+                <form method="post">
+                  <input type="hidden" name="ref" value={r.id} />
+                  {r.status === 'nouvelle' ? (
+                    <button class="acc-btn" name="action" value="traitee">
+                      Marquer comme traitée
+                    </button>
+                  ) : (
+                    <button class="acc-btn light" name="action" value="nouvelle">
+                      Remettre à traiter
+                    </button>
+                  )}
+                </form>
+                <form method="post" data-confirm="Supprimer définitivement cette demande ?">
+                  <input type="hidden" name="ref" value={r.id} />
+                  <button class="acc-btn danger" name="action" value="supprimer">
+                    Supprimer
+                  </button>
+                </form>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p class="acc-empty">{status === 'nouvelle' ? 'Aucune demande à traiter. Les messages envoyés depuis la page Contact arrivent ici.' : 'Aucune demande.'}</p>
+      )
+    }
+  </div>
+</AccountLayout>
+
+<style>
+  .filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 0 14px;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid var(--color-line);
+    transition:
+      background-color 150ms ease-out,
+      color 150ms ease-out;
+  }
+  .filter.on {
+    color: #fff;
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+  }
+  /* The boutique square is black: white on the selected (black) filter. */
+  .filter.on :global(span[style*='--color-boutique']) {
+    background-color: #fff !important;
+  }
+  @media (hover: hover) {
+    .filter:not(.on):hover {
+      background: var(--color-mist);
+    }
+  }
+  .filter:focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 2px;
+  }
+  .n {
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.7;
+  }
+  .list {
+    margin-top: 24px;
+    border-bottom: 1px solid var(--color-line);
+  }
+  .req {
+    padding-block: 22px;
+    border-top: 1px solid var(--color-line);
+  }
+  .req.done {
+    opacity: 0.7;
+  }
+  .head {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .topic {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .when {
+    color: var(--color-muted);
+  }
+  .subject {
+    margin-top: 8px;
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .who {
+    margin-top: 4px;
+    font-size: 15px;
+  }
+  .context {
+    margin-top: 12px;
+    padding: 10px 14px;
+    font-size: 14px;
+    line-height: 1.5;
+    background: var(--color-mist);
+    border-left: 3px solid var(--color-gold);
+  }
+  .message {
+    margin-top: 12px;
+    max-width: 75ch;
+    font-size: 15px;
+    line-height: 1.6;
+    white-space: pre-line;
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+  }
+</style>

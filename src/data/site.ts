@@ -10,6 +10,11 @@ export const SITE = {
   phoneHref: 'tel:+33412240387',
   email: 'contact@lesdroneslyonnais.com',
   contactPath: '/contact/',
+  // Office, from the contact page of the current site.
+  address: { street: '283 rue de l’Étang', postalCode: '69760', locality: 'Limonest' },
+  mapsHref: 'https://www.google.com/maps/search/?api=1&query=283%20rue%20de%20l%27%C3%89tang%2069760%20Limonest',
+  /** Opening hours, Europe/Paris: Monday (1) to Saturday (6), 9:00–19:00. */
+  hours: { label: 'Du lundi au samedi, 9 h – 19 h', days: [1, 2, 3, 4, 5, 6], open: 9, close: 19 },
   social: [
     { label: 'LinkedIn', href: 'https://www.linkedin.com/company/les-drones-lyonnais/' },
     { label: 'Instagram', href: 'https://www.instagram.com/lesdroneslyonnais/' },

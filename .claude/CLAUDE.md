@@ -251,6 +251,19 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   check on the commit; review there before merging into main. Cloudflare Worker: `lesdroneslyonnais`
   (the name in wrangler.jsonc must match the Worker connected to the repo, or builds fail).
 
-Next: /contact/ (receives ?commande=slug*qty,…, ?location=&du=&au=, ?formation=,
-?prestation=), Stripe checkout (from the cart) and booking Worker, legal pages,
-redirect plan.
+- /contact/ (2026-11-19, client: "an important page, make it nicer"; from the WordPress
+  contact page): on demand (prerender = false). Title, then the details as editorial rows
+  (phone, e-mail, address with a route link, hours with "open now" computed in Europe/Paris
+  from SITE.hours) next to the form, Pop peeking over it (coucou; left on phones, the chat
+  button is bottom right), high-five Pop on the thank-you state. The form starts with the
+  activity (topic chips; it will pick the e-mail sender LDL Prestations / Formations /
+  Boutique / Location) and is pre-filled from the button that led there (?prestation=,
+  ?formation=, ?commande=slug*qty,…, ?location=&du=&au=): subject + recap rebuilt on the
+  server from the catalogue (lib/server/contact.ts), never trusted from the form. Bots: a
+  hidden field + 2.5 s minimum; 5 messages per address per hour. Stored in D1
+  contact_requests (migration 0003, applied --remote), read and handled in
+  /admin/demandes/ (tab "Demandes"). No e-mail yet: wire Brevo (the app's provider) to
+  notify the team and acknowledge the visitor. Address / hours in data/site.ts.
+
+Next: e-mail for the contact page (Brevo), Stripe checkout (from the cart) and booking
+Worker, legal pages, redirect plan.

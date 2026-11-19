@@ -22,11 +22,19 @@ const tabs = !user
   : user.role === 'admin'
     ? [
         { href: '/admin/', label: 'Clients' },
+        { href: '/admin/demandes/', label: 'Demandes' },
         { href: '/compte/', label: 'Mon profil' },
       ]
     : [{ href: '/compte/', label: user.role === 'prestation' ? 'Mes prestations' : 'Mes commandes' }];
 // A client's single tab stays lit on their mission pages too.
-const current = (href: string) => (href === '/admin/' ? path.startsWith('/admin/') : user?.role !== 'admin' ? path.startsWith(href) : path === href);
+const current = (href: string) =>
+  href === '/admin/demandes/'
+    ? path.startsWith(href)
+    : href === '/admin/'
+      ? path.startsWith('/admin/') && !path.startsWith('/admin/demandes/')
+      : user?.role !== 'admin'
+        ? path.startsWith(href)
+        : path === href;
 ---
 
 <BaseLayout title={`${title} | Les Drones Lyonnais`} description="Espace client Les Drones Lyonnais." noindex activity="general">

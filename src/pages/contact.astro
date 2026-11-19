@@ -1,0 +1,683 @@
+---
+// Contact page (client request, 2026-11-19: "an important page, make it nicer"), from the
+// current WordPress contact page: title, a welcoming line, the form with Pop peeking over
+// it, then address, phone, e-mail and hours. Here the details come first (one tap to call
+// or write, a route link, "open now" from the hours), and the form starts with the
+// activity the request is about. Every "devis / commande / réserver" button of the site
+// lands here with what it was about (?prestation=, ?formation=, ?commande=, ?location=
+// &du=&au=): the subject and a recap are filled in, rebuilt on the server from the
+// catalogue. Messages are stored in D1 and read in /admin/demandes/ (no e-mail yet).
+import { Image } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Square from '../components/ui/Square.astro';
+import JsonLd from '../components/seo/JsonLd.astro';
+import popPeek from '../assets/pop/coucou.webp';
+import popThanks from '../assets/pop/high-five.webp';
+import { SITE } from '../data/site';
+import { CONTEXT_KEYS, TOPICS, openingStatus, prefillOf, readContext, readForm, saveRequest, type ContactInput, type FieldErrors, type Topic } from '../lib/server/contact';
+
+export const prerender = false;
+
+const isPost = Astro.request.method === 'POST';
+const form = isPost ? await Astro.request.formData() : null;
+const context = form ? readContext((k) => (form.get(k) as string | null) ?? null) : readContext((k) => Astro.url.searchParams.get(k));
+const prefill = prefillOf(context);
+
+let values: ContactInput = { topic: (prefill?.topic ?? 'autre') as Topic, name: '', email: '', phone: '', subject: prefill?.subject ?? '', message: '' };
+let errors: FieldErrors = {};
+let sent = false;
+
+if (form) {
+  const r = readForm(form);
+  values = r.input;
+  errors = r.errors;
+  if (r.bot) sent = true; // Bots get the thank-you page and nothing is stored.
+  else if (!Object.keys(errors).length) {
+    try {
+      if (await saveRequest(values, prefill?.lines ?? [])) sent = true;
+      else errors.form = 'Vous nous avez déjà écrit plusieurs fois dans l’heure : nous avons bien vos messages. Pour un complément urgent, appelez-nous.';
+    } catch {
+      errors.form = `Votre message n’a pas pu être envoyé. Réessayez dans un instant, ou écrivez-nous à ${SITE.email}.`;
+    }
+  }
+}
+
+const status = openingStatus();
+const err = (k: keyof FieldErrors) => errors[k];
+const title = 'Contact et devis | Les Drones Lyonnais';
+const description = 'Prestation, formation, achat ou location de drone : écrivez-nous ou appelez le 04 12 24 03 87. Les Drones Lyonnais, 283 rue de l’Étang, 69760 Limonest.';
+const address = `${SITE.address.street}, ${SITE.address.postalCode} ${SITE.address.locality}`;
+
+const ld = {
+  '@context': 'https://schema.org',
+  '@type': 'ContactPage',
+  url: `${SITE.url}${SITE.contactPath}`,
+  mainEntity: {
+    '@type': 'LocalBusiness',
+    name: SITE.name,
+    url: SITE.url,
+    telephone: '+33412240387',
+    email: SITE.email,
+    address: { '@type': 'PostalAddress', streetAddress: SITE.address.street, postalCode: SITE.address.postalCode, addressLocality: SITE.address.locality, addressCountry: 'FR' },
+    openingHoursSpecification: { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], opens: '09:00', closes: '19:00' },
+  },
+};
+---
+
+<BaseLayout title={title} description={description} activity="general" current="contact">
+  <JsonLd slot="head" data={ld} />
+
+  <section class="contact" aria-labelledby="contact-title">
+    <div class="wrap grid-contact">
+      <header class="head">
+        <h1 id="contact-title" class="display title">
+          <Square color="var(--color-gold)" class="mt-[0.3em] size-[0.36em]" />
+          Contactez-nous
+        </h1>
+        <p class="lead">
+          Nous sommes à votre écoute. Prestation, formation, achat ou location&nbsp;: parlez-nous de votre projet, l’équipe vous répond.
+        </p>
+      </header>
+
+      <!-- Details: one tap to call, write or find the way. -->
+      <div class="intro">
+        <ul class="rows">
+          <li class="row">
+            <span class="hud-text key">Téléphone</span>
+            <a class="value tabular-nums" href={SITE.phoneHref}>{SITE.phone}</a>
+            <a class="act" href={SITE.phoneHref}>Appeler <span aria-hidden="true">→</span></a>
+          </li>
+          <li class="row">
+            <span class="hud-text key">E-mail</span>
+            <a class="value break-all" href={`mailto:${SITE.email}`}>{SITE.email}</a>
+            <a class="act" href={`mailto:${SITE.email}`}>Écrire <span aria-hidden="true">→</span></a>
+          </li>
+          <li class="row">
+            <span class="hud-text key">Adresse</span>
+            <span class="value">{SITE.address.street}<br />{SITE.address.postalCode} {SITE.address.locality}</span>
+            <a class="act" href={SITE.mapsHref} target="_blank" rel="noopener">Itinéraire <span aria-hidden="true">↗</span></a>
+          </li>
+          <li class="row">
+            <span class="hud-text key">Horaires</span>
+            <span class="value">{SITE.hours.label}</span>
+            <span class:list={['state hud-text', status.open && 'is-open']}><span class="dot" aria-hidden="true"></span>{status.text}</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- The form, Pop peeking over it as on the current site. -->
+      <div class="panel-wrap">
+        <div class="panel viewfinder">
+          {
+            sent ? (
+              <div class="thanks" role="status">
+                <Image src={popThanks} alt="" width={180} densities={[1, 2]} class="thanks-pop" />
+                <h2 class="display thanks-title">Message bien reçu, merci&nbsp;!</h2>
+                <p class="thanks-text">
+                  {values.name ? `${values.name}, nous` : 'Nous'} revenons vers vous à l’adresse <strong>{values.email || 'indiquée'}</strong>
+                  {values.phone && <> ou au <strong>{values.phone}</strong></>}.
+                </p>
+                {(values.subject || prefill) && (
+                  <div class="recap">
+                    <p class="hud-text recap-title">Votre message</p>
+                    <p class="recap-subject">{values.subject}</p>
+                    {prefill && (
+                      <ul class="recap-lines">
+                        {prefill.lines.map((l) => (
+                          <li class:list={[l.startsWith('Total') && 'total']}>{l}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+                <div class="thanks-actions">
+                  <a href="/" class="btn">Retour à l’accueil</a>
+                  <a href={SITE.phoneHref} class="btn light">Une urgence ? {SITE.phone}</a>
+                </div>
+              </div>
+            ) : (
+              <form method="post" class="form" aria-describedby={err('form') ? 'form-error' : undefined}>
+                <Image src={popPeek} alt="" width={150} densities={[1, 2]} class="peek" loading="eager" />
+
+                {err('form') && (
+                  <p id="form-error" class="alert" role="alert">
+                    {err('form')}
+                  </p>
+                )}
+
+                <fieldset class="topics">
+                  <legend class="label">Votre projet concerne</legend>
+                  <div class="chips">
+                    {TOPICS.map((t) => (
+                      <label class="chip">
+                        <input type="radio" name="topic" value={t.id} checked={values.topic === t.id} />
+                        <Square color={t.color} class="size-[9px]" />
+                        {t.label}
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+
+                {prefill && (
+                  <div class="recap">
+                    <p class="recap-head">
+                      <span class="hud-text recap-title">{prefill.title}</span>
+                      {prefill.back && (
+                        <a class="recap-back" href={prefill.back.href}>
+                          {prefill.back.label}
+                        </a>
+                      )}
+                    </p>
+                    <ul class="recap-lines">
+                      {prefill.lines.map((l) => (
+                        <li class:list={[l.startsWith('Total') && 'total']}>{l}</li>
+                      ))}
+                    </ul>
+                    <p class="recap-note">Ces informations sont jointes à votre message.</p>
+                  </div>
+                )}
+
+                {CONTEXT_KEYS.map((k) => context[k] && <input type="hidden" name={k} value={context[k]} />)}
+                <input type="hidden" name="t" value={String(Date.now())} />
+
+                <div class="fields">
+                  <label class="field">
+                    <span class="label">Nom et prénom</span>
+                    <input name="name" value={values.name} autocomplete="name" maxlength={120} placeholder="Votre nom" />
+                  </label>
+                  <label class="field">
+                    <span class="label">
+                      E-mail <span class="req" aria-hidden="true">*</span>
+                    </span>
+                    <input type="email" name="email" value={values.email} required autocomplete="email" maxlength={200} placeholder="vous@exemple.fr" aria-invalid={err('email') ? 'true' : undefined} aria-describedby={err('email') ? 'err-email' : undefined} />
+                    {err('email') && <span id="err-email" class="err">{err('email')}</span>}
+                  </label>
+                  <label class="field">
+                    <span class="label">
+                      Téléphone <span class="opt">facultatif</span>
+                    </span>
+                    <input type="tel" name="phone" value={values.phone} autocomplete="tel" maxlength={40} placeholder="06 00 00 00 00" aria-invalid={err('phone') ? 'true' : undefined} aria-describedby={err('phone') ? 'err-phone' : undefined} />
+                    {err('phone') && <span id="err-phone" class="err">{err('phone')}</span>}
+                  </label>
+                  <label class="field">
+                    <span class="label">
+                      Sujet <span class="req" aria-hidden="true">*</span>
+                    </span>
+                    <input name="subject" value={values.subject} required maxlength={160} placeholder="Le sujet de votre message" aria-invalid={err('subject') ? 'true' : undefined} aria-describedby={err('subject') ? 'err-subject' : undefined} />
+                    {err('subject') && <span id="err-subject" class="err">{err('subject')}</span>}
+                  </label>
+                  <label class="field full">
+                    <span class="label">
+                      Message <span class="req" aria-hidden="true">*</span>
+                    </span>
+                    <textarea name="message" rows="6" required maxlength={5000} placeholder="Votre projet, le lieu, les dates, vos questions…" aria-invalid={err('message') ? 'true' : undefined} aria-describedby={err('message') ? 'err-message' : undefined}>{values.message}</textarea>
+                    {err('message') && <span id="err-message" class="err">{err('message')}</span>}
+                  </label>
+                </div>
+
+                <!-- Left empty by people (hidden), filled by bots. -->
+                <label class="trap" aria-hidden="true">
+                  Site web
+                  <input name="site_web" tabindex="-1" autocomplete="off" />
+                </label>
+
+                <div class="submit">
+                  <button type="submit" class="btn">
+                    Envoyer ma demande <span aria-hidden="true">→</span>
+                  </button>
+                  <p class="privacy">Vos coordonnées servent uniquement à vous répondre.</p>
+                </div>
+              </form>
+            )
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .contact {
+    background: var(--color-mist);
+    padding-block: clamp(48px, 7vw, 104px) clamp(72px, 9vw, 128px);
+  }
+  .grid-contact {
+    display: grid;
+    gap: clamp(40px, 6vw, 88px);
+    align-items: start;
+  }
+  .head {
+    grid-column: 1 / -1;
+  }
+  @media (min-width: 1024px) {
+    .grid-contact {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      row-gap: 0;
+    }
+    /* The details stay in view next to the form; they line up with the form's top. */
+    .intro {
+      position: sticky;
+      top: 32px;
+      padding-top: 92px;
+    }
+  }
+
+  /* ---------- Details ---------- */
+  .title {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.28em;
+    font-size: clamp(2rem, 8vw, 4.6rem);
+    white-space: nowrap;
+  }
+  .lead {
+    max-width: 40ch;
+    margin-top: 20px;
+    font-size: 18px;
+    line-height: 1.55;
+    color: var(--color-ink-soft);
+  }
+  .rows {
+    border-bottom: 1px solid var(--color-line);
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 6px 16px;
+    padding-block: 18px;
+    border-top: 1px solid var(--color-line);
+  }
+  .key {
+    color: var(--color-muted);
+  }
+  .value {
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  a.value {
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 4px;
+    transition: text-decoration-color 150ms ease-out;
+  }
+  .act {
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--color-gold-deep);
+  }
+  .act span {
+    display: inline-block;
+    transition: transform 200ms var(--ease-out-strong);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    a.value:hover {
+      text-decoration-color: currentColor;
+    }
+    .act:hover span {
+      transform: translateX(3px);
+    }
+  }
+  .state {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--color-muted);
+    grid-column: 2 / -1;
+  }
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: #b9b9b6;
+  }
+  .state.is-open {
+    color: var(--color-ink);
+  }
+  .state.is-open .dot {
+    background: var(--color-formations);
+    box-shadow: 0 0 0 0 rgb(41 99 33 / 0.5);
+    animation: pulse 2.4s ease-out infinite;
+  }
+  @keyframes pulse {
+    70% {
+      box-shadow: 0 0 0 7px rgb(41 99 33 / 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgb(41 99 33 / 0);
+    }
+  }
+
+  /* ---------- Panel ---------- */
+  .panel-wrap {
+    padding-top: 92px; /* room for Pop peeking over the panel */
+  }
+  .panel {
+    --vf: rgb(0 0 0 / 0.55);
+    --vf-size: 18px;
+    --vf-inset: 10px;
+    background: #fff;
+    border: 1px solid var(--color-line);
+    padding: clamp(24px, 4vw, 48px);
+  }
+  .form {
+    position: relative;
+  }
+  .peek {
+    position: absolute;
+    right: clamp(8px, 4vw, 40px);
+    bottom: calc(100% + clamp(24px, 4vw, 48px) - 6px);
+    width: 150px;
+    height: auto;
+    pointer-events: none;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .peek {
+      animation: peek 900ms var(--ease-out-strong) 300ms both;
+    }
+  }
+  @keyframes peek {
+    from {
+      opacity: 0;
+      transform: translateY(40px);
+    }
+  }
+
+  .label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .req {
+    color: var(--color-gold-deep);
+  }
+  .opt {
+    margin-left: 4px;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--color-muted);
+  }
+
+  .topics {
+    border: 0;
+    margin: 0;
+    padding: 0;
+  }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .chip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 0 16px;
+    font-size: 15px;
+    font-weight: 500;
+    border: 1px solid var(--color-line);
+    background: #fff;
+    cursor: pointer;
+    transition:
+      border-color 150ms ease-out,
+      background-color 150ms ease-out,
+      color 150ms ease-out;
+  }
+  .chip input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .chip:has(input:checked) {
+    border-color: var(--color-ink);
+    background: var(--color-ink);
+    color: #fff;
+  }
+  /* The boutique square is black: white on the selected (black) chip. */
+  .chip:has(input:checked) :global(span[style*='--color-boutique']) {
+    background-color: #fff !important;
+  }
+  .chip:has(input:focus-visible) {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 3px;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .chip:hover {
+      border-color: var(--color-ink);
+    }
+  }
+
+  .recap {
+    margin-top: 24px;
+    padding: 16px 18px;
+    background: var(--color-mist);
+    border-left: 3px solid var(--color-gold);
+  }
+  .recap-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .recap-title {
+    color: var(--color-muted);
+  }
+  .recap-back {
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .recap-subject {
+    margin-top: 6px;
+    font-weight: 600;
+  }
+  .recap-lines {
+    margin-top: 8px;
+    display: grid;
+    gap: 4px;
+    font-size: 15px;
+    line-height: 1.45;
+  }
+  .recap-lines .total {
+    font-weight: 600;
+  }
+  .recap-note {
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--color-muted);
+  }
+
+  .fields {
+    display: grid;
+    gap: 20px;
+    margin-top: 28px;
+  }
+  @media (min-width: 640px) {
+    .fields {
+      grid-template-columns: 1fr 1fr;
+    }
+    .field.full {
+      grid-column: 1 / -1;
+    }
+  }
+  .field input,
+  .field textarea {
+    display: block;
+    width: 100%;
+    min-height: 50px;
+    padding: 12px 14px;
+    font: inherit;
+    font-size: 16px; /* no zoom on iOS */
+    color: var(--color-ink);
+    background: #fff;
+    border: 1px solid #cfcfcb;
+    border-radius: 0;
+    transition: border-color 150ms ease-out;
+  }
+  .field textarea {
+    min-height: 160px;
+    resize: vertical;
+    line-height: 1.5;
+  }
+  .field input::placeholder,
+  .field textarea::placeholder {
+    color: #8a8a86;
+  }
+  .field input:focus-visible,
+  .field textarea:focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 0;
+    border-color: var(--color-ink);
+  }
+  .field [aria-invalid='true'] {
+    border-color: #b42318;
+  }
+  .err {
+    display: block;
+    margin-top: 6px;
+    font-size: 14px;
+    color: #b42318;
+  }
+  .alert {
+    margin-bottom: 24px;
+    padding: 12px 16px;
+    font-weight: 600;
+    background: #fdf1ef;
+    border-left: 4px solid #b42318;
+  }
+  .trap {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .submit {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px 24px;
+    margin-top: 28px;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 52px;
+    padding: 0 28px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    background: var(--color-ink);
+    border: 1px solid var(--color-ink);
+    cursor: pointer;
+    transition:
+      background-color 150ms ease-out,
+      color 150ms ease-out,
+      transform 150ms ease-out;
+  }
+  .btn span {
+    display: inline-block;
+    transition: transform 200ms var(--ease-out-strong);
+  }
+  .btn:active {
+    transform: scale(0.98);
+  }
+  .btn.light {
+    color: var(--color-ink);
+    background: #fff;
+    border-color: rgb(0 0 0 / 0.25);
+  }
+  .btn:focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 3px;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .btn:hover {
+      background: var(--color-gold);
+      border-color: var(--color-gold);
+      color: var(--color-ink);
+    }
+    .btn:hover span {
+      transform: translateX(3px);
+    }
+    .btn.light:hover {
+      background: #fff;
+      border-color: var(--color-ink);
+    }
+  }
+  .privacy {
+    font-size: 14px;
+    color: var(--color-muted);
+  }
+
+  /* ---------- Thank you ---------- */
+  .thanks {
+    position: relative;
+  }
+  .thanks-pop {
+    width: 180px;
+    height: auto;
+    margin-top: -100px;
+  }
+  .thanks-title {
+    margin-top: 16px;
+    font-size: clamp(1.8rem, 3.2vw, 2.6rem);
+  }
+  .thanks-text {
+    margin-top: 14px;
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--color-ink-soft);
+  }
+  .thanks-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 28px;
+  }
+
+  @media (max-width: 1023px) {
+    .row {
+      grid-template-columns: 84px minmax(0, 1fr) auto;
+    }
+  }
+  @media (max-width: 479px) {
+    .row {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+    .key {
+      grid-column: 1 / -1;
+    }
+    .state {
+      grid-column: 1 / -1;
+    }
+    /* Left on phones: the Pop chat button is fixed bottom right. */
+    .peek {
+      width: 120px;
+      right: auto;
+      left: 12px;
+    }
+    .panel-wrap {
+      padding-top: 72px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .state.is-open .dot {
+      animation: none;
+    }
+    .chip,
+    .btn,
+    .btn span,
+    .act span {
+      transition: none;
+    }
+  }
+</style>

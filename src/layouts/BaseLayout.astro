@@ -24,9 +24,11 @@ interface Props {
   /** The WordPress-style header (ActivityHeader) of this activity, or 'general' for pages
    *  of none (account area): solid, above the page. Replaces headerOverlay / headerCompact. */
   activity?: HeaderVariant;
+  /** With `activity`: menu item marked as the current page (the contact page). */
+  current?: 'contact';
 }
 
-const { title, description, image, noindex, headerOverlay = false, headerCompact = false, mode, activity } = Astro.props;
+const { title, description, image, noindex, headerOverlay = false, headerCompact = false, mode, activity, current } = Astro.props;
 const path = Astro.url.pathname;
 const pop: PopContext = Astro.props.pop ?? {
   page:
@@ -60,7 +62,7 @@ const pop: PopContext = Astro.props.pop ?? {
   </head>
   <body>
     <a href="#contenu" class="sr-only z-50 bg-ink px-4 py-3 text-white focus:not-sr-only focus:fixed focus:top-3 focus:left-3">Aller au contenu</a>
-    {activity ? <ActivityHeader activity={activity} /> : <Header overlay={headerOverlay} compact={headerCompact} />}
+    {activity ? <ActivityHeader activity={activity} current={current} /> : <Header overlay={headerOverlay} compact={headerCompact} />}
     <main id="contenu">
       <slot />
     </main>
