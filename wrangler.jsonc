@@ -24,6 +24,13 @@
   // Schema: migrations/. Local copy: npm run db:migrate (in .wrangler/, not committed).
   // Remote (created 2026-11-19, Western Europe): npx wrangler d1 migrations apply ldl-accounts --remote
   "d1_databases": [{ "binding": "DB", "database_name": "ldl-accounts", "database_id": "b77b84a6-b698-4a13-9e5d-e94d70dbb663", "migrations_dir": "migrations" }],
+  // Branch previews (`wrangler preview`) do not inherit bindings: they are repeated here
+  // (same KV and D1 as production for now: no real data yet). Without the SESSION entry,
+  // the Astro adapter adds one with no id and every preview deployment is refused.
+  "previews": {
+    "kv_namespaces": [{ "binding": "SESSION", "id": "51e51b0db98c42bc85abe6e566a8bea3" }],
+    "d1_databases": [{ "binding": "DB", "database_name": "ldl-accounts", "database_id": "b77b84a6-b698-4a13-9e5d-e94d70dbb663", "migrations_dir": "migrations" }]
+  },
   // Private files (invoice PDFs, deliverables): no R2 bucket. They move to Supabase Storage
   // with the accounts (shared with the LDL Academy app); until then uploads and downloads
   // answer "bientôt disponible".
