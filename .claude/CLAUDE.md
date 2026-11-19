@@ -233,7 +233,7 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   (invoice PDFs, deliverables). Sign-in: e-mail + password (PBKDF2-SHA256 100k, lock after
   5 failures / 15 min), sign-up for shop customers, temporary passwords set by the admin
   (must_change_password → /compte/mot-de-passe/ first), forgotten password = one-time
-  e-mail link (no mail service yet: shown on the page in dev, only logged in prod). Session
+  e-mail link (Brevo since 2026-11-19, sender by role; also shown on the page in dev). Session
   cookie; src/middleware.ts guards the areas. Roles: admin (/admin/: clients,
   orders, missions, deliverables, invoices), boutique (orders + invoices), prestation
   (missions: date, place, terms, deliverables + invoices). Files only through
@@ -262,8 +262,14 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   server from the catalogue (lib/server/contact.ts), never trusted from the form. Bots: a
   hidden field + 2.5 s minimum; 5 messages per address per hour. Stored in D1
   contact_requests (migration 0003, applied --remote), read and handled in
-  /admin/demandes/ (tab "Demandes"). No e-mail yet: wire Brevo (the app's provider) to
-  notify the team and acknowledge the visitor. Address / hours in data/site.ts.
+  /admin/demandes/ (tab "Demandes"). E-mails through Brevo (lib/server/mail.ts, the app's
+  provider, transactional API): the team gets the request (reply-to = visitor), the visitor
+  an acknowledgement, sender name by activity (LDL Prestations / Formations / Boutique /
+  Location, "Les Drones Lyonnais" otherwise), one sender address MAIL_FROM (default
+  SITE.email, verified in Brevo). Worker secret BREVO_API_KEY (set by the client in the
+  Cloudflare dashboard; previews need it too via `wrangler preview secret put`); without
+  it nothing is sent and the reason is logged. Optional vars: MAIL_FROM,
+  CONTACT_NOTIFY_TO. Address / hours in data/site.ts.
 
-Next: e-mail for the contact page (Brevo), Stripe checkout (from the cart) and booking
+Next: Stripe checkout (from the cart) and booking
 Worker, legal pages, redirect plan.

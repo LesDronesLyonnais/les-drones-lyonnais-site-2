@@ -173,3 +173,56 @@ export interface ContactRequest extends ContactInput {
   status: 'nouvelle' | 'traitee';
   created_at: string;
 }
+
+// ---------- E-mails (Brevo, lib/server/mail.ts) ----------
+
+/** The team gets the request (reply goes straight to the visitor); the visitor gets an
+ *  acknowledgement from the sender of their activity. Failures are logged, never shown:
+ *  the request is already stored. */
+export async function mailRequest(input: ContactInput, context: string[], origin: string) {
+  const { sendMail, layout, rows, button, esc, escLines, teamAddress, SENDER_NAME } = await import('./mail');
+  const audience = input.topic;
+  const who = input.name || input.email;
+  const details: [string, string][] = [
+    ['Activité', TOPIC_LABEL[input.topic]],
+    ['Nom', input.name || '—'],
+    ['E-mail', input.email],
+    ...(input.phone ? ([['Téléphone', input.phone]] as [string, string][]) : []),
+    ['Sujet', input.subject],
+    ...(context.length ? ([['Détail', context.join('\n')]] as [string, string][]) : []),
+  ];
+
+  const team = sendMail({
+    audience,
+    to: { email: teamAddress() },
+    replyTo: { email: input.email, ...(input.name ? { name: input.name } : {}) },
+    subject: `Nouvelle demande · ${TOPIC_LABEL[input.topic]} · ${input.subject}`,
+    html: layout(
+      audience,
+      `<h1 style="margin:0 0 8px;font-size:22px;">Nouvelle demande de ${esc(who)}</h1>
+<p style="margin:0;color:#5c5c5c;">Envoyée depuis la page Contact du site. Répondez à cet e-mail pour écrire directement au client.</p>
+${rows(details)}
+<p style="margin:16px 0 0;padding:16px;background:#f1f1ef;border-left:3px solid #af854a;">${escLines(input.message)}</p>
+${button(`${origin}/admin/demandes/`, 'Voir les demandes')}`,
+    ),
+    text: `Nouvelle demande de ${who}\n\n${details.map(([k, v]) => `${k} : ${v}`).join('\n')}\n\n${input.message}\n\nVoir les demandes : ${origin}/admin/demandes/`,
+  });
+
+  const ack = sendMail({
+    audience,
+    to: { email: input.email, ...(input.name ? { name: input.name } : {}) },
+    replyTo: { email: SITE.email, name: SENDER_NAME[audience] },
+    subject: 'Nous avons bien reçu votre message',
+    html: layout(
+      audience,
+      `<h1 style="margin:0 0 12px;font-size:22px;">Merci${input.name ? ` ${esc(input.name)}` : ''}, votre message est bien arrivé.</h1>
+<p style="margin:0;">L’équipe ${esc(SENDER_NAME[audience])} revient vers vous. Pour une question urgente, appelez-nous au <a href="${SITE.phoneHref}" style="color:#000;">${esc(SITE.phone)}</a> (${esc(SITE.hours.label.toLowerCase())}).</p>
+${rows([['Sujet', input.subject], ...(context.length ? ([['Détail', context.join('\n')]] as [string, string][]) : [])])}
+<p style="margin:16px 0 0;padding:16px;background:#f1f1ef;border-left:3px solid #af854a;">${escLines(input.message)}</p>
+<p style="margin:16px 0 0;color:#5c5c5c;font-size:14px;">Vous pouvez répondre à cet e-mail pour compléter votre demande.</p>`,
+    ),
+    text: `Merci${input.name ? ` ${input.name}` : ''}, votre message est bien arrivé.\n\nL’équipe ${SENDER_NAME[audience]} revient vers vous. Pour une question urgente : ${SITE.phone} (${SITE.hours.label.toLowerCase()}).\n\nSujet : ${input.subject}\n${context.length ? `Détail :\n${context.join('\n')}\n` : ''}\n${input.message}\n\n${SITE.name} · ${SITE.address.street}, ${SITE.address.postalCode} ${SITE.address.locality}`,
+  });
+
+  await Promise.allSettled([team, ack]);
+}

@@ -6,7 +6,8 @@
 // activity the request is about. Every "devis / commande / réserver" button of the site
 // lands here with what it was about (?prestation=, ?formation=, ?commande=, ?location=
 // &du=&au=): the subject and a recap are filled in, rebuilt on the server from the
-// catalogue. Messages are stored in D1 and read in /admin/demandes/ (no e-mail yet).
+// catalogue. Messages are stored in D1, read in /admin/demandes/, and e-mailed through
+// Brevo (team notification + acknowledgement, lib/server/contact.ts mailRequest).
 import { Image } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Square from '../components/ui/Square.astro';
@@ -14,7 +15,7 @@ import JsonLd from '../components/seo/JsonLd.astro';
 import popPeek from '../assets/pop/coucou.webp';
 import popThanks from '../assets/pop/high-five.webp';
 import { SITE } from '../data/site';
-import { CONTEXT_KEYS, TOPICS, openingStatus, prefillOf, readContext, readForm, saveRequest, type ContactInput, type FieldErrors, type Topic } from '../lib/server/contact';
+import { CONTEXT_KEYS, TOPICS, mailRequest, openingStatus, prefillOf, readContext, readForm, saveRequest, type ContactInput, type FieldErrors, type Topic } from '../lib/server/contact';
 
 export const prerender = false;
 
@@ -34,7 +35,10 @@ if (form) {
   if (r.bot) sent = true; // Bots get the thank-you page and nothing is stored.
   else if (!Object.keys(errors).length) {
     try {
-      if (await saveRequest(values, prefill?.lines ?? [])) sent = true;
+      if (await saveRequest(values, prefill?.lines ?? [])) {
+        sent = true;
+        await mailRequest(values, prefill?.lines ?? [], Astro.url.origin);
+      }
       else errors.form = 'Vous nous avez déjà écrit plusieurs fois dans l’heure : nous avons bien vos messages. Pour un complément urgent, appelez-nous.';
     } catch {
       errors.form = `Votre message n’a pas pu être envoyé. Réessayez dans un instant, ou écrivez-nous à ${SITE.email}.`;

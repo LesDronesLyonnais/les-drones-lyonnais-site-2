@@ -16,7 +16,7 @@ if (Astro.request.method === 'POST') {
   if (!isEmail(email)) error = 'Cette adresse e-mail ne semble pas valide.';
   else {
     const user = await findUser(email);
-    if (user) ({ shownLink } = await sendResetLink(email, await createSignInLink(user, Astro.url.origin)));
+    if (user) ({ shownLink } = await sendResetLink(email, await createSignInLink(user, Astro.url.origin), user.role));
     sentTo = email;
   }
 }
