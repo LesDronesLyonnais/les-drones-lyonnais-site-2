@@ -19,7 +19,9 @@ const squareColor = (id: string, color: string) => (id === 'boutique' ? 'current
 ---
 
 <header class="site-header" data-overlay={overlay || undefined} data-compact={(overlay && compact) || undefined}>
-  <div class="header-inner wrap flex h-[72px] items-center justify-between gap-6">
+  <!-- Full width, same side margins as ActivityHeader (client request, 2026-11-19: the
+       1280px container left wide empty sides on large screens). -->
+  <div class="header-inner flex h-[72px] w-full items-center justify-between gap-6 px-[clamp(16px,3.2vw,64px)]">
     <a href="/" class="logo relative block h-9 shrink-0" aria-label={`${SITE.name}, accueil`}>
       <Image src={overlay ? logoLight : logoDark} alt="" height={36} densities={[1, 2]} loading="eager" class="h-9 w-auto" />
     </a>
