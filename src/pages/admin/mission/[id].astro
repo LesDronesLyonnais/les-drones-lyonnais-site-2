@@ -2,7 +2,7 @@
 // One mission in the admin: edit its date, place, terms and status, upload deliverables
 // (several files at once, stored in R2), delete them, or delete the mission.
 import AccountLayout from '../../../layouts/AccountLayout.astro';
-import { db, type User } from '../../../lib/server/auth';
+import { FILES_UNAVAILABLE, db, files, type User } from '../../../lib/server/auth';
 import { back, filesOf, isDate, oneOf, removeFile, storeFile, text } from '../../../lib/server/admin';
 import { MISSION_STATUS, deliverableUrl, formatDate, formatSize, type Deliverable, type Mission, type MissionStatus } from '../../../lib/account';
 import { SERVICES } from '../../../data/services';
@@ -37,7 +37,8 @@ if (Astro.request.method === 'POST') {
 
   if (action === 'upload') {
     const list = filesOf(form, 'files');
-    if (!list.length) error = 'Choisissez au moins un fichier.';
+    if (!files()) error = FILES_UNAVAILABLE;
+    else if (!list.length) error = 'Choisissez au moins un fichier.';
     else {
       for (const file of list) {
         const key = await storeFile(`livrables/${mission.id}`, file);

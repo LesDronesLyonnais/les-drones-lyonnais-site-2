@@ -24,8 +24,9 @@
   // Schema: migrations/. Local copy: npm run db:migrate (in .wrangler/, not committed).
   // Remote (created 2026-11-19, Western Europe): npx wrangler d1 migrations apply ldl-accounts --remote
   "d1_databases": [{ "binding": "DB", "database_name": "ldl-accounts", "database_id": "b77b84a6-b698-4a13-9e5d-e94d70dbb663", "migrations_dir": "migrations" }],
-  // Private files (invoice PDFs, deliverables), served only to their owner.
-  "r2_buckets": [{ "binding": "FILES", "bucket_name": "ldl-files" }]
+  // Private files (invoice PDFs, deliverables): no R2 bucket. They move to Supabase Storage
+  // with the accounts (shared with the LDL Academy app); until then uploads and downloads
+  // answer "bientôt disponible".
   // Administrators: ADMIN_EMAILS, comma-separated e-mails that become admins on first
   // sign-in. Not stored here: locally in .dev.vars (not committed), in production as a
   // secret (`npx wrangler secret put ADMIN_EMAILS`).

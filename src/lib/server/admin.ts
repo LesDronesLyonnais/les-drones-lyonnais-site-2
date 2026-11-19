@@ -22,10 +22,14 @@ export const filesOf = (form: FormData, key: string) => form.getAll(key).filter(
 export async function storeFile(prefix: string, file: File): Promise<string> {
   const safe = file.name.normalize('NFKD').replace(/[^\w.-]+/g, '-').replace(/^-+|-+$/g, '').slice(-120) || 'fichier';
   const key = `${prefix}/${crypto.randomUUID()}-${safe}`;
-  await files().put(key, file.stream(), { httpMetadata: { contentType: file.type || 'application/octet-stream' } });
+  const bucket = files();
+  if (!bucket) throw new Error('No file storage');
+  await bucket.put(key, file.stream(), { httpMetadata: { contentType: file.type || 'application/octet-stream' } });
   return key;
 }
-export const removeFile = (key: string) => files().delete(key);
+export const removeFile = async (key: string) => {
+  await files()?.delete(key);
+};
 
 /** Order lines typed one per line: "2 × Batterie pour DJI Matrice 5T — 511" (quantity,
  *  name, unit price TTC). A line without quantity or price counts 1 and 0 €. */

@@ -3,7 +3,7 @@
 // invoices (PDF uploads), and deleting the account. Every form posts here with an
 // "action" field, then redirects back (?ok=…).
 import AccountLayout from '../../../layouts/AccountLayout.astro';
-import { MIN_PASSWORD, db, isEmail, normEmail, setPassword, temporaryPassword, type User } from '../../../lib/server/auth';
+import { FILES_UNAVAILABLE, MIN_PASSWORD, db, files, isEmail, normEmail, setPassword, temporaryPassword, type User } from '../../../lib/server/auth';
 import { amount, back, fileOf, isDate, oneOf, parseItems, removeFile, storeFile, text, today } from '../../../lib/server/admin';
 import {
   MISSION_STATUS,
@@ -107,7 +107,8 @@ if (Astro.request.method === 'POST') {
     const number = text(form, 'number', 40);
     const link = text(form, 'link', 40); // "order:12" or "mission:4"
     const [kind, linkId] = link.split(':');
-    if (!number || !file) error = 'Une facture a besoin d’un numéro et d’un fichier PDF.';
+    if (!files()) error = FILES_UNAVAILABLE;
+    else if (!number || !file) error = 'Une facture a besoin d’un numéro et d’un fichier PDF.';
     else if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) error = 'La facture doit être un fichier PDF.';
     else if (await db().prepare('SELECT 1 FROM invoices WHERE number = ?').bind(number).first()) error = `La facture ${number} existe déjà.`;
     else {

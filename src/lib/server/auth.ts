@@ -21,7 +21,10 @@ export interface User {
 }
 
 export const db = () => env.DB;
-export const files = () => env.FILES;
+/** Private file storage. No bucket for now (files move to Supabase Storage): callers
+ *  must handle `undefined`. */
+export const files = (): R2Bucket | undefined => (env as { FILES?: R2Bucket }).FILES;
+export const FILES_UNAVAILABLE = 'Le stockage des fichiers arrive bientôt : ajout impossible pour l’instant.';
 
 const SESSION_COOKIE = 'ldl_session';
 const SESSION_DAYS = 30;

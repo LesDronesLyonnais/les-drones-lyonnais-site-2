@@ -227,9 +227,10 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   Cloudflare account of Les Drones Lyonnais (since 2026-11-19; until 2026-11-17 the site was
   built on a former account): D1 `ldl-accounts` (Western Europe, migrations applied
   --remote) and the SESSION KV are in wrangler.jsonc with their ids — previews
-  (`wrangler preview`) do not create missing resources. R2 must be enabled on the account
-  before the `ldl-files` bucket can exist. Before going live: set ADMIN_EMAILS, wire an
-  e-mail service in sendResetLink.
+  (`wrangler preview`) do not create missing resources. No R2: the accounts are moving to the
+  Supabase project of the LDL Academy app (shared accounts, `site` schema, private bucket
+  for invoices / deliverables — agreed 2026-11-19); until then file uploads and downloads
+  answer "bientôt disponible" (files() may be undefined).
   Previews: every pushed branch gets a preview link (`preview_urls`), shown in the Cloudflare
   check on the commit; review there before merging into main. Cloudflare Worker: `lesdroneslyonnais`
   (the name in wrangler.jsonc must match the Worker connected to the repo, or builds fail).

@@ -24,7 +24,9 @@ export const GET: APIRoute = async ({ params, locals }) => {
   // Someone else's file answers like a missing one.
   if (!row || (!admin && row.user_id !== user.id)) return new Response('Introuvable', { status: 404 });
 
-  const object = await files().get(row.file_key);
+  const bucket = files();
+  if (!bucket) return new Response('Fichier bientôt disponible', { status: 503 });
+  const object = await bucket.get(row.file_key);
   if (!object) return new Response('Fichier introuvable', { status: 404 });
 
   const filename = params.kind === 'facture' ? `Facture-${row.name}.pdf` : row.name;
