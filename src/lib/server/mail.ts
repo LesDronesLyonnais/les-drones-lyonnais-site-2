@@ -40,6 +40,7 @@ export async function sendMail(mail: Mail): Promise<boolean> {
   try {
     const res = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
+      signal: AbortSignal.timeout(15_000),
       headers: { 'api-key': key, 'content-type': 'application/json', accept: 'application/json' },
       body: JSON.stringify({
         sender: { name: SENDER_NAME[mail.audience], email: conf().MAIL_FROM || SITE.email },
@@ -59,6 +60,17 @@ export async function sendMail(mail: Mail): Promise<boolean> {
     console.log(`[mail] Brevo injoignable : ${String(e).slice(0, 200)}`);
     return false;
   }
+}
+
+/** Lets the response go out at once and the e-mails finish after it (Cloudflare
+ *  waitUntil); where there is no such context (some dev setups), waits for them. */
+export function inBackground(locals: unknown, work: Promise<unknown>): Promise<unknown> {
+  const cf = (locals as { cfContext?: { waitUntil(p: Promise<unknown>): void } }).cfContext;
+  if (cf?.waitUntil) {
+    cf.waitUntil(work);
+    return Promise.resolve();
+  }
+  return work;
 }
 
 // ---------- Layout shared by every e-mail ----------

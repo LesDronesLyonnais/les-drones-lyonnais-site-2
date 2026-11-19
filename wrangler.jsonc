@@ -16,6 +16,8 @@
   // (<version>-lesdroneslyonnais.<subdomain>.workers.dev), shown in the
   // Cloudflare check on the commit, so a change can be reviewed before it reaches main.
   "workers_dev": true,
+  // Worker logs in the Cloudflare dashboard (e-mail failures are logged as "[mail] …").
+  "observability": { "enabled": true },
   "preview_urls": true,
   // Astro sessions (the Cloudflare adapter stores them in the SESSION KV namespace).
   // Previews (`wrangler preview`) need the id: they do not create missing resources.

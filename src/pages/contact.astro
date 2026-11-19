@@ -12,6 +12,7 @@ import { Image } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Square from '../components/ui/Square.astro';
 import JsonLd from '../components/seo/JsonLd.astro';
+import { inBackground } from '../lib/server/mail';
 import popPeek from '../assets/pop/coucou.webp';
 import popThanks from '../assets/pop/high-five.webp';
 import { SITE } from '../data/site';
@@ -37,7 +38,7 @@ if (form) {
     try {
       if (await saveRequest(values, prefill?.lines ?? [])) {
         sent = true;
-        await mailRequest(values, prefill?.lines ?? [], Astro.url.origin);
+        await inBackground(Astro.locals, mailRequest(values, prefill?.lines ?? [], Astro.url.origin));
       }
       else errors.form = 'Vous nous avez déjà écrit plusieurs fois dans l’heure : nous avons bien vos messages. Pour un complément urgent, appelez-nous.';
     } catch {

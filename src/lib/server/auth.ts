@@ -142,26 +142,29 @@ export async function consumeSignInToken(token: string): Promise<User | null> {
   return db().prepare('SELECT * FROM users WHERE id = ?').bind(row.user_id).first<User>();
 }
 
-/** E-mails the one-time link (Brevo, sender by account type). In dev the link is also
- *  shown on the page, so the flow can be tried without a mail key. */
-export async function sendResetLink(email: string, link: string, role?: Role): Promise<{ shownLink?: string }> {
-  const { sendMail, layout, button, esc } = await import('./mail');
-  const audience = role === 'boutique' ? 'boutique' : role === 'prestation' ? 'prestations' : 'autre';
-  const sent = await sendMail({
-    audience,
-    to: { email },
-    subject: 'Choisissez un nouveau mot de passe',
-    html: layout(
+/** E-mails the one-time link (Brevo, sender by account type); `sending` is left to
+ *  finish after the response (inBackground). In dev the link is also shown on the page,
+ *  so the flow can be tried without a mail key. */
+export function sendResetLink(email: string, link: string, role?: Role): { shownLink?: string; sending: Promise<unknown> } {
+  const sending = (async () => {
+    const { sendMail, layout, button, esc } = await import('./mail');
+    const audience = role === 'boutique' ? 'boutique' : role === 'prestation' ? 'prestations' : 'autre';
+    const sent = await sendMail({
       audience,
-      `<h1 style="margin:0 0 12px;font-size:22px;">Nouveau mot de passe</h1>
-<p style="margin:0;">Vous avez demandé à changer le mot de passe de votre espace client. Ce lien est valable ${LINK_MINUTES} minutes et ne sert qu’une fois.</p>
-${button(link, 'Choisir un nouveau mot de passe')}
-<p style="margin:20px 0 0;color:#5c5c5c;font-size:14px;">Si vous n’êtes pas à l’origine de cette demande, ignorez cet e-mail : votre mot de passe ne change pas.<br>Lien : ${esc(link)}</p>`,
-    ),
-    text: `Vous avez demandé à changer le mot de passe de votre espace client.\nCe lien est valable ${LINK_MINUTES} minutes et ne sert qu’une fois :\n${link}\n\nSi vous n’êtes pas à l’origine de cette demande, ignorez cet e-mail.`,
-  });
-  if (!sent) console.log(`[connexion] lien de réinitialisation pour ${email} : ${link}`);
-  return import.meta.env.DEV ? { shownLink: link } : {};
+      to: { email },
+      subject: 'Choisissez un nouveau mot de passe',
+      html: layout(
+        audience,
+        `<h1 style="margin:0 0 12px;font-size:22px;">Nouveau mot de passe</h1>
+  <p style="margin:0;">Vous avez demandé à changer le mot de passe de votre espace client. Ce lien est valable ${LINK_MINUTES} minutes et ne sert qu’une fois.</p>
+  ${button(link, 'Choisir un nouveau mot de passe')}
+  <p style="margin:20px 0 0;color:#5c5c5c;font-size:14px;">Si vous n’êtes pas à l’origine de cette demande, ignorez cet e-mail : votre mot de passe ne change pas.<br>Lien : ${esc(link)}</p>`,
+      ),
+      text: `Vous avez demandé à changer le mot de passe de votre espace client.\nCe lien est valable ${LINK_MINUTES} minutes et ne sert qu’une fois :\n${link}\n\nSi vous n’êtes pas à l’origine de cette demande, ignorez cet e-mail.`,
+    });
+    if (!sent) console.log(`[connexion] lien de réinitialisation pour ${email} : ${link}`);
+  })();
+  return { ...(import.meta.env.DEV ? { shownLink: link } : {}), sending };
 }
 
 // ---------- Sessions ----------
