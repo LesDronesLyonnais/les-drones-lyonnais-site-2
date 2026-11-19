@@ -110,7 +110,7 @@ const packs = await Promise.all(
     background: var(--color-paper);
   }
   .top {
-    padding: 104px 0 120px;
+    padding: calc(32px + var(--header-over, 72px)) 0 120px;
     background:
       radial-gradient(ellipse at 85% 0%, rgb(226 93 2 / 0.25), transparent 55%),
       var(--color-ink);

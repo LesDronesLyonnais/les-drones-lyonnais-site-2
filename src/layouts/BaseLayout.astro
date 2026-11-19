@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import SEOHead from '../components/seo/SEOHead.astro';
 import Header from '../components/layout/Header.astro';
+import ActivityHeader from '../components/layout/ActivityHeader.astro';
 import Footer from '../components/layout/Footer.astro';
 import PopChat, { type PopContext } from '../components/layout/PopChat.astro';
 import CartDrawer from '../components/shop/CartDrawer.astro';
@@ -20,9 +21,12 @@ interface Props {
   pop?: PopContext;
   /** Homepage: default mode of the page (see lib/mode.ts). */
   mode?: ActivityId;
+  /** Activity page: the WordPress-style header of that activity (ActivityHeader), solid,
+   *  above the hero. Replaces headerOverlay / headerCompact. */
+  activity?: ActivityId;
 }
 
-const { title, description, image, noindex, headerOverlay = false, headerCompact = false, mode } = Astro.props;
+const { title, description, image, noindex, headerOverlay = false, headerCompact = false, mode, activity } = Astro.props;
 const path = Astro.url.pathname;
 const pop: PopContext = Astro.props.pop ?? {
   page:
@@ -41,7 +45,7 @@ const pop: PopContext = Astro.props.pop ?? {
 ---
 
 <!doctype html>
-<html lang="fr" data-mode={mode}>
+<html lang="fr" data-mode={mode} data-activity-header={activity}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -56,7 +60,7 @@ const pop: PopContext = Astro.props.pop ?? {
   </head>
   <body>
     <a href="#contenu" class="sr-only z-50 bg-ink px-4 py-3 text-white focus:not-sr-only focus:fixed focus:top-3 focus:left-3">Aller au contenu</a>
-    <Header overlay={headerOverlay} compact={headerCompact} />
+    {activity ? <ActivityHeader activity={activity} /> : <Header overlay={headerOverlay} compact={headerCompact} />}
     <main id="contenu">
       <slot />
     </main>

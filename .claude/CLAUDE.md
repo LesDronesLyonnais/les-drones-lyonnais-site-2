@@ -149,6 +149,16 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   current site; SHOP_MENU in data/catalog.ts, each tile is a catalogue filter).
 - `/location-drone-et-camera/`: RentalHero = search + category tiles + featured packs.
 - Heroes are deliberately different per page; do not reuse one hero everywhere.
+- Activity headers (client request, 2026-11-19): /prestations/, /formations-drone-a-lyon/,
+  /boutique/ and /location-drone-et-camera/ use ActivityHeader (BaseLayout `activity` prop)
+  instead of the transparent Header: a copy of the WordPress header — white 63px bar, the
+  activity's LDL logo (src/assets/brand/ldl-<activity>.png; the boutique one has a navy dot,
+  as on the client's logo sheet) + "| ACTIVITY", menu in Montserrat (@fontsource, 600/700)
+  centred on the page, current page in its colour and underlined, account, cart with its
+  count even at 0, the activity's button (Demander un conseil / Conseil & devis / Réserver
+  maintenant; hover: white with coloured text). Colours: #0835bd, #296321, #04082d,
+  #e25d02. Burger below 1280px. Heroes read --header-over / --header-solid (global.css) so
+  they leave no empty band under the solid bar.
 - Search: /recherche.json (built), lib/search-client.ts, components/shop/SearchBox.astro.
 - Pop (mascot) is everywhere: PopChat (layout, guided assistant, answers in the file,
   contextual per page, opens with [data-pop-open][data-pop-ask]) and PopTip (speech

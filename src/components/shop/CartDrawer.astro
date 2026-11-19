@@ -673,7 +673,8 @@ import { ACTIVITIES, SITE } from '../../data/site';
     renderSuggestions(all);
     document.querySelectorAll<HTMLElement>('[data-cart-count]').forEach((c) => {
       c.textContent = String(n);
-      c.hidden = n === 0;
+      // The activity pages' header (ActivityHeader) shows 0 too, as on WordPress.
+      c.hidden = n === 0 && !c.hasAttribute('data-cart-count-always');
     });
     document.querySelectorAll<HTMLElement>('[data-cart-open]').forEach((b) => b.setAttribute('aria-label', `Panier, ${plural(n)}`));
     fresh = '';

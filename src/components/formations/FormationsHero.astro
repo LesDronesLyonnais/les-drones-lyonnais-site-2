@@ -284,7 +284,7 @@ const cones = [
     --field: #04090a;
     position: relative;
     overflow: hidden;
-    min-height: 100svh;
+    min-height: calc(100svh - var(--header-solid, 0px));
     color: #fff;
     background:
       radial-gradient(ellipse 60% 55% at 58% 52%, rgb(95 208 76 / 0.14), transparent 70%),
@@ -501,8 +501,8 @@ const cones = [
     z-index: 2;
     display: flex;
     flex-direction: column;
-    min-height: 100svh;
-    padding-top: calc(72px + clamp(8px, 2.4vh, 24px));
+    min-height: calc(100svh - var(--header-solid, 0px));
+    padding-top: calc(var(--header-over, 72px) + clamp(8px, 2.4vh, 24px));
     padding-bottom: clamp(12px, 2.6vh, 28px);
   }
   .crumbs {

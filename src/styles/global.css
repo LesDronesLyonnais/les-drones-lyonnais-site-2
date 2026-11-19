@@ -38,6 +38,19 @@
   --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
+/* Room the page heroes leave for the header. Transparent header over the hero (default):
+   72px inside the hero. Activity pages (ActivityHeader, solid white bar above the hero):
+   nothing inside, and the hero is shorter by the bar's height. */
+html[data-activity-header] {
+  --header-over: 0px;
+  --header-solid: 63px;
+}
+@media (max-width: 599px) {
+  html[data-activity-header] {
+    --header-solid: 56px;
+  }
+}
+
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;

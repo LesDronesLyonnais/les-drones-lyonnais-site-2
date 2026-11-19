@@ -39,7 +39,7 @@ const structuredData = [
 ];
 ---
 
-<BaseLayout title={title} description={description} headerOverlay>
+<BaseLayout title={title} description={description} activity="prestations">
   {structuredData.map((data) => <JsonLd slot="head" data={data} />)}
   <PrestationsHero />
   <!-- The family chosen in the hero comes first (html[data-famille], set by the hero). -->
