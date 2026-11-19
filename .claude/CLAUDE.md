@@ -224,8 +224,11 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   /compte/fichier/<facture|livrable>/<id>/ (owner or admin). ADMIN_EMAILS in .dev.vars /
   secret, never in wrangler.jsonc. Runtime types: src/cloudflare.d.ts (the full
   `wrangler types` runtime breaks the DOM types), bindings: `npm run types`.
-  Before deploying: create the D1 database (id in wrangler.jsonc) and the R2 bucket, apply
-  migrations --remote, set ADMIN_EMAILS, wire an e-mail service in sendResetLink.
+  D1, R2 and the SESSION KV have no id in wrangler.jsonc: Wrangler creates them on the first
+  Cloudflare build (a placeholder D1 id made every build fail from 2026-11-17). Before going
+  live: apply migrations --remote, set ADMIN_EMAILS, wire an e-mail service in sendResetLink.
+  Previews: every pushed branch gets a preview link (`preview_urls`), shown in the Cloudflare
+  check on the commit; review there before merging into main.
 
 Next: /contact/ (receives ?commande=slug*qty,…, ?location=&du=&au=, ?formation=,
 ?prestation=), Stripe checkout (from the cart) and booking Worker, legal pages,
