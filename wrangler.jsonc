@@ -17,12 +17,13 @@
   // Cloudflare check on the commit, so a change can be reviewed before it reaches main.
   "workers_dev": true,
   "preview_urls": true,
+  // Astro sessions (the Cloudflare adapter stores them in the SESSION KV namespace).
+  // Previews (`wrangler preview`) need the id: they do not create missing resources.
+  "kv_namespaces": [{ "binding": "SESSION", "id": "51e51b0db98c42bc85abe6e566a8bea3" }],
   // Accounts, sign-in links, sessions, orders, invoices, missions, deliverables.
   // Schema: migrations/. Local copy: npm run db:migrate (in .wrangler/, not committed).
-  // No database_id: Wrangler creates the "ldl-accounts" database on the first deploy
-  // (the former placeholder id does not exist on Cloudflare). Remote schema afterwards:
-  // `npx wrangler d1 migrations apply ldl-accounts --remote`.
-  "d1_databases": [{ "binding": "DB", "database_name": "ldl-accounts", "migrations_dir": "migrations" }],
+  // Remote (created 2026-11-19, Western Europe): npx wrangler d1 migrations apply ldl-accounts --remote
+  "d1_databases": [{ "binding": "DB", "database_name": "ldl-accounts", "database_id": "b77b84a6-b698-4a13-9e5d-e94d70dbb663", "migrations_dir": "migrations" }],
   // Private files (invoice PDFs, deliverables), served only to their owner.
   "r2_buckets": [{ "binding": "FILES", "bucket_name": "ldl-files" }]
   // Administrators: ADMIN_EMAILS, comma-separated e-mails that become admins on first

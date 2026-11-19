@@ -224,9 +224,12 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   /compte/fichier/<facture|livrable>/<id>/ (owner or admin). ADMIN_EMAILS in .dev.vars /
   secret, never in wrangler.jsonc. Runtime types: src/cloudflare.d.ts (the full
   `wrangler types` runtime breaks the DOM types), bindings: `npm run types`.
-  D1, R2 and the SESSION KV have no id in wrangler.jsonc: Wrangler creates them on the first
-  Cloudflare build (the former placeholder D1 id does not exist there). Before going
-  live: apply migrations --remote, set ADMIN_EMAILS, wire an e-mail service in sendResetLink.
+  Cloudflare account of Les Drones Lyonnais (since 2026-11-19; until 2026-11-17 the site was
+  built on a former account): D1 `ldl-accounts` (Western Europe, migrations applied
+  --remote) and the SESSION KV are in wrangler.jsonc with their ids — previews
+  (`wrangler preview`) do not create missing resources. R2 must be enabled on the account
+  before the `ldl-files` bucket can exist. Before going live: set ADMIN_EMAILS, wire an
+  e-mail service in sendResetLink.
   Previews: every pushed branch gets a preview link (`preview_urls`), shown in the Cloudflare
   check on the commit; review there before merging into main. Cloudflare Worker: `lesdroneslyonnais`
   (the name in wrangler.jsonc must match the Worker connected to the repo, or builds fail).
