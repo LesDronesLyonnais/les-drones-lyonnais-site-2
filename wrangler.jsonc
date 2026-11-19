@@ -4,7 +4,7 @@
 // html_handling keeps the WordPress-style trailing-slash URLs (/prestations/).
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "les-drones-lyonnais-site-2",
+  "name": "lesdroneslyonnais",
   "compatibility_date": "2026-10-01",
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
@@ -13,14 +13,14 @@
     "not_found_handling": "none"
   },
   // Every branch pushed to GitHub gets its own preview link
-  // (<version>-les-drones-lyonnais-site-2.<subdomain>.workers.dev), shown in the
+  // (<version>-lesdroneslyonnais.<subdomain>.workers.dev), shown in the
   // Cloudflare check on the commit, so a change can be reviewed before it reaches main.
   "workers_dev": true,
   "preview_urls": true,
   // Accounts, sign-in links, sessions, orders, invoices, missions, deliverables.
   // Schema: migrations/. Local copy: npm run db:migrate (in .wrangler/, not committed).
   // No database_id: Wrangler creates the "ldl-accounts" database on the first deploy
-  // (a made-up id made every Cloudflare build fail). Remote schema afterwards:
+  // (the former placeholder id does not exist on Cloudflare). Remote schema afterwards:
   // `npx wrangler d1 migrations apply ldl-accounts --remote`.
   "d1_databases": [{ "binding": "DB", "database_name": "ldl-accounts", "migrations_dir": "migrations" }],
   // Private files (invoice PDFs, deliverables), served only to their owner.
