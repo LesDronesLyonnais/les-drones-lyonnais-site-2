@@ -255,7 +255,7 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   contact page): on demand (prerender = false). Title, then the details as editorial rows
   (phone, e-mail, address with a route link, hours with "open now" computed in Europe/Paris
   from SITE.hours) next to the form, Pop peeking over it (coucou; left on phones, the chat
-  button is bottom right), high-five Pop on the thank-you state. The form starts with the
+  button is bottom right). Once stored, a 303 to /merci-contact/?activite=<topic>. The form starts with the
   activity (topic chips; it will pick the e-mail sender LDL Prestations / Formations /
   Boutique / Location) and is pre-filled from the button that led there (?prestation=,
   ?formation=, ?commande=slug*qty,…, ?location=&du=&au=): subject + recap rebuilt on the
@@ -271,6 +271,12 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   2027-10-19; previews need it too via `wrangler preview secret put`); without
   it nothing is sent and the reason is logged. Optional vars: MAIL_FROM,
   CONTACT_NOTIFY_TO. Address / hours in data/site.ts.
+- /merci-contact/ (2026-11-20, client: "the WordPress version is more fun"), its WordPress URL,
+  static, noindex: "Votre message a bien atterri." (gold "atterri."), Pop moonwalking on an
+  orbit (the WordPress 4 × 2 sprite sheet, assets/merci/pop-moonwalk.webp, 8 frames in
+  0.96 s + a 5.6 s glide), the route drawing itself, the "Message bien reçu" card and its
+  tick, "Et maintenant ?" in two steps, the four activities. A pause button (data-motion)
+  stops every animation; reduced motion = still Pop. ?activite= sets the second button.
 
 Next: Stripe checkout (from the cart) and booking
 Worker, legal pages, redirect plan.

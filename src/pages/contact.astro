@@ -14,7 +14,6 @@ import Square from '../components/ui/Square.astro';
 import JsonLd from '../components/seo/JsonLd.astro';
 import { inBackground } from '../lib/server/mail';
 import popPeek from '../assets/pop/coucou.webp';
-import popThanks from '../assets/pop/high-five.webp';
 import { SITE } from '../data/site';
 import { CONTEXT_KEYS, TOPICS, mailRequest, openingStatus, prefillOf, readContext, readForm, saveRequest, type ContactInput, type FieldErrors, type Topic } from '../lib/server/contact';
 
@@ -27,20 +26,22 @@ const prefill = prefillOf(context);
 
 let values: ContactInput = { topic: (prefill?.topic ?? 'autre') as Topic, name: '', email: '', phone: '', subject: prefill?.subject ?? '', message: '' };
 let errors: FieldErrors = {};
-let sent = false;
+// Once stored, the visitor goes to the thank-you page (as on WordPress), with the
+// activity so its second button leads there; a refresh cannot send the form again.
+const thanks = (topic: Topic) => Astro.redirect(`/merci-contact/?activite=${topic}`, 303);
 
 if (form) {
   const r = readForm(form);
   values = r.input;
   errors = r.errors;
-  if (r.bot) sent = true; // Bots get the thank-you page and nothing is stored.
-  else if (!Object.keys(errors).length) {
+  if (r.bot) return thanks(values.topic); // Bots get the thank-you page and nothing is stored.
+  if (!Object.keys(errors).length) {
     try {
       if (await saveRequest(values, prefill?.lines ?? [])) {
-        sent = true;
         await inBackground(Astro.locals, mailRequest(values, prefill?.lines ?? [], Astro.url.origin));
+        return thanks(values.topic);
       }
-      else errors.form = 'Vous nous avez déjà écrit plusieurs fois dans l’heure : nous avons bien vos messages. Pour un complément urgent, appelez-nous.';
+      errors.form = 'Vous nous avez déjà écrit plusieurs fois dans l’heure : nous avons bien vos messages. Pour un complément urgent, appelez-nous.';
     } catch {
       errors.form = `Votre message n’a pas pu être envoyé. Réessayez dans un instant, ou écrivez-nous à ${SITE.email}.`;
     }
@@ -114,33 +115,7 @@ const ld = {
       <div class="panel-wrap">
         <div class="panel viewfinder">
           {
-            sent ? (
-              <div class="thanks" role="status">
-                <Image src={popThanks} alt="" width={180} densities={[1, 2]} class="thanks-pop" />
-                <h2 class="display thanks-title">Message bien reçu, merci&nbsp;!</h2>
-                <p class="thanks-text">
-                  {values.name ? `${values.name}, nous` : 'Nous'} revenons vers vous à l’adresse <strong>{values.email || 'indiquée'}</strong>
-                  {values.phone && <> ou au <strong>{values.phone}</strong></>}.
-                </p>
-                {(values.subject || prefill) && (
-                  <div class="recap">
-                    <p class="hud-text recap-title">Votre message</p>
-                    <p class="recap-subject">{values.subject}</p>
-                    {prefill && (
-                      <ul class="recap-lines">
-                        {prefill.lines.map((l) => (
-                          <li class:list={[l.startsWith('Total') && 'total']}>{l}</li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                )}
-                <div class="thanks-actions">
-                  <a href="/" class="btn">Retour à l’accueil</a>
-                  <a href={SITE.phoneHref} class="btn light">Une urgence ? {SITE.phone}</a>
-                </div>
-              </div>
-            ) : (
+            (
               <form method="post" class="form" aria-describedby={err('form') ? 'form-error' : undefined}>
                 <Image src={popPeek} alt="" width={150} densities={[1, 2]} class="peek" loading="eager" />
 
@@ -613,32 +588,6 @@ const ld = {
   .privacy {
     font-size: 14px;
     color: var(--color-muted);
-  }
-
-  /* ---------- Thank you ---------- */
-  .thanks {
-    position: relative;
-  }
-  .thanks-pop {
-    width: 180px;
-    height: auto;
-    margin-top: -100px;
-  }
-  .thanks-title {
-    margin-top: 16px;
-    font-size: clamp(1.8rem, 3.2vw, 2.6rem);
-  }
-  .thanks-text {
-    margin-top: 14px;
-    font-size: 17px;
-    line-height: 1.55;
-    color: var(--color-ink-soft);
-  }
-  .thanks-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-top: 28px;
   }
 
   @media (max-width: 1023px) {

@@ -1,0 +1,761 @@
+---
+// Thank-you page after the contact form (client request, 2026-11-19: "the version on our
+// site is more fun"), at its WordPress URL. Copied from www.lesdroneslyonnais.com/
+// merci-contact/: "Votre message a bien atterri.", Pop moonwalking along an orbit (the
+// WordPress 4 × 2 sprite sheet, assets/merci/pop-moonwalk.webp), the route drawing itself,
+// the "Message bien reçu" card with its tick, "Et maintenant ?" in two steps, then the four
+// activities. A pause button stops every animation; reduced motion shows a still Pop.
+// /contact/ redirects here (?activite=<topic>) once a message is stored: the second button
+// then leads to that activity. Static, noindex (a page reached only after sending).
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Square from '../components/ui/Square.astro';
+import sprite from '../assets/merci/pop-moonwalk.webp';
+import { ACTIVITIES, NAV } from '../data/site';
+
+const EXPLORE = {
+  prestations: { label: 'Explorer nos prestations', href: ACTIVITIES.prestations.href },
+  formations: { label: 'Explorer nos formations', href: ACTIVITIES.formations.href },
+  boutique: { label: 'Retourner à la boutique', href: ACTIVITIES.boutique.href },
+  location: { label: 'Voir le matériel à louer', href: ACTIVITIES.location.href },
+};
+---
+
+<BaseLayout title="Merci pour votre message | Les Drones Lyonnais" description="Votre message a bien été envoyé à l’équipe Les Drones Lyonnais." noindex activity="general" current="contact">
+  <section id="merci" class="merci" data-motion="on" aria-labelledby="merci-title" style={`--sprite: url(${sprite.src})`}>
+    <div class="wrap hero">
+      <div class="copy">
+        <p class="eyebrow reveal">
+          <span class="tick" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M5 12.5l4.2 4.2L19 7" /></svg>
+          </span>
+          Merci pour votre confiance
+        </p>
+        <h1 id="merci-title" class="display title reveal r2"><span class="line">Votre message</span> <span class="line">a bien <span class="gold">atterri.</span></span></h1>
+        <p class="intro reveal r3">
+          <strong>Votre demande a bien été envoyée.</strong>
+          L’équipe Les Drones Lyonnais revient vers vous prochainement pour donner vie à votre projet.
+        </p>
+        <div class="actions reveal r4">
+          <a href="/" class="btn">Revenir à l’accueil <span aria-hidden="true">→</span></a>
+          <a href={EXPLORE.prestations.href} class="link" data-explore>
+            <span data-explore-label>{EXPLORE.prestations.label}</span>
+            <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+        <p class="signature reveal r4"><span class="rule" aria-hidden="true"></span>De belles idées commencent par un premier échange.</p>
+      </div>
+
+      <!-- Pop celebrates: decorative, described by the card's text. -->
+      <div class="visual" aria-hidden="true">
+        <div class="orbits"><div class="orbit-dot"></div></div>
+        <span class="coord coord-top"><b>Pop</b>Notre mascotte</span>
+        <span class="coord coord-bottom"><b>Message reçu</b>Moonwalk approuvé</span>
+        <span class="cross cross-one">+</span>
+        <span class="cross cross-two">+</span>
+        <svg class="route" viewBox="0 0 535 478" fill="none">
+          <path d="M72 352c-9-42 13-75 45-60 44 20-4 81 17 100 23 22 61-2 95-38 30-33 52-53 76-53" class="route-dots" />
+          <path d="M72 352c-9-42 13-75 45-60 44 20-4 81 17 100 23 22 61-2 95-38 30-33 52-53 76-53" class="route-line" />
+          <circle cx="72" cy="352" r="4" class="route-start" />
+        </svg>
+        <div class="pop-stage">
+          <div class="pop-travel">
+            <div class="pop-shadow"></div>
+            <div class="pop-sprite"></div>
+          </div>
+        </div>
+        <div class="confirm">
+          <span class="confirm-icon">
+            <svg viewBox="0 0 24 24"><path class="check-path" d="M5 12.5l4.2 4.2L19 7" /></svg>
+          </span>
+          <span>
+            <strong>Message bien reçu</strong>
+            <small>Pop fête ça à sa façon.</small>
+          </span>
+          <span class="confirm-dot"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="wrap next">
+      <div class="next-head">
+        <span class="next-icon" aria-hidden="true">→</span>
+        <div>
+          <p class="hud-text next-kicker">Le début de l’aventure</p>
+          <h2 class="next-title">Et maintenant&nbsp;?</h2>
+        </div>
+      </div>
+      <ol class="steps">
+        <li>
+          <span class="hud-text step-n">01</span>
+          <div>
+            <h3>On découvre votre projet.</h3>
+            <p>Notre équipe prend connaissance de votre demande et de vos besoins.</p>
+          </div>
+        </li>
+        <li>
+          <span class="hud-text step-n">02</span>
+          <div>
+            <h3>On en parle ensemble.</h3>
+            <p>Nous vous recontactons pour imaginer la suite, avec vous.</p>
+          </div>
+        </li>
+      </ol>
+    </div>
+
+    <div class="wrap meanwhile">
+      <p>En attendant, prenez un peu de hauteur.</p>
+      <ul class="doors">
+        {
+          NAV.map((a) => (
+            <li>
+              <a href={a.href}>
+                <Square color={a.color} class="size-[8px]" />
+                {a.label}
+                <span aria-hidden="true">↗</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <div class="wrap motion-bar">
+      <button type="button" class="motion-toggle" data-motion-toggle aria-pressed="false">
+        <span class="pause-label">Mettre les animations en pause</span>
+        <span class="play-label">Relancer les animations</span>
+      </button>
+    </div>
+  </section>
+</BaseLayout>
+
+<script is:inline define:vars={{ explore: EXPLORE }}>
+  (function () {
+    var root = document.getElementById('merci');
+    if (!root) return;
+    // The second button follows the activity of the message (?activite=).
+    var topic = new URLSearchParams(location.search).get('activite');
+    var target = topic && explore[topic];
+    if (target) {
+      var a = root.querySelector('[data-explore]');
+      a.href = target.href;
+      a.querySelector('[data-explore-label]').textContent = target.label;
+    }
+    var btn = root.querySelector('[data-motion-toggle]');
+    btn.addEventListener('click', function () {
+      var paused = root.dataset.motion === 'paused';
+      root.dataset.motion = paused ? 'on' : 'paused';
+      btn.setAttribute('aria-pressed', String(!paused));
+    });
+  })();
+</script>
+
+<style>
+  .merci {
+    --ink-2: #2b2b2b;
+    --soft: #6b6b67;
+    overflow-x: clip; /* the tilted card may pass the edge by a few pixels on phones */
+    background: var(--color-paper);
+    padding-top: clamp(40px, 7vw, 96px);
+  }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    display: grid;
+    gap: clamp(24px, 4vw, 56px);
+    align-items: center;
+  }
+  @media (min-width: 1024px) {
+    .hero {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+  }
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-formations);
+  }
+  .tick {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    background: #edf1e7;
+  }
+  .tick svg,
+  .confirm-icon svg {
+    width: 60%;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  /* Two lines, as on WordPress: "Votre message / a bien atterri." */
+  .title {
+    margin-top: 22px;
+    font-size: clamp(2.1rem, 4.3vw, 4.6rem);
+    line-height: 1.02;
+  }
+  .title .line {
+    display: block;
+    white-space: nowrap;
+  }
+  .gold {
+    color: var(--color-gold);
+  }
+  .intro {
+    max-width: 44ch;
+    margin-top: 28px;
+    font-size: 17px;
+    line-height: 1.7;
+    color: var(--soft);
+  }
+  .intro strong {
+    display: block;
+    color: var(--color-ink);
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px 28px;
+    margin-top: 32px;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 54px;
+    padding: 0 24px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    background: var(--color-ink);
+    transition: background-color 150ms ease-out;
+  }
+  .btn span,
+  .link span:last-child,
+  .doors a span:last-child {
+    display: inline-block;
+    transition: transform 200ms var(--ease-out-strong);
+  }
+  .link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .link span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 2px;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .btn:hover {
+      background: var(--color-ink-soft);
+    }
+    .btn:hover span {
+      transform: translateX(3px);
+    }
+    .link:hover span:last-child,
+    .doors a:hover span:last-child {
+      transform: translate(2px, -2px);
+    }
+  }
+  .btn:focus-visible,
+  .link:focus-visible,
+  .doors a:focus-visible,
+  .motion-toggle:focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 3px;
+  }
+  .signature {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 28px;
+    font-size: 14px;
+    color: var(--soft);
+  }
+  .rule {
+    width: 22px;
+    height: 1px;
+    background: currentColor;
+  }
+
+  /* ---------- Visual: Pop moonwalking on an orbit ---------- */
+  .visual {
+    position: relative;
+    width: min(100%, 560px);
+    aspect-ratio: 535 / 478;
+    margin-inline: auto;
+  }
+  .orbits {
+    position: absolute;
+    left: 50%;
+    top: 44%;
+    width: 84%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    border: 1px solid rgb(0 0 0 / 0.1);
+    border-radius: 50%;
+  }
+  .orbits::before,
+  .orbits::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+  }
+  .orbits::before {
+    inset: 13%;
+    border: 1px dashed rgb(0 0 0 / 0.14);
+  }
+  .orbits::after {
+    inset: 26%;
+    border: 1px solid rgb(175 133 74 / 0.35);
+  }
+  .orbit-dot {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    animation: orbit 46s linear infinite;
+  }
+  .orbit-dot::after {
+    content: '';
+    position: absolute;
+    top: 14.2%;
+    left: 14.2%;
+    width: 7px;
+    height: 7px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: var(--color-gold);
+  }
+  .coord {
+    position: absolute;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 10px;
+    line-height: 2;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--soft);
+  }
+  .coord b {
+    display: block;
+    font-weight: 500;
+    color: var(--ink-2);
+  }
+  .coord-top {
+    left: 0;
+    top: 12%;
+  }
+  .coord-bottom {
+    right: 0;
+    bottom: 26%;
+    text-align: right;
+  }
+  .cross {
+    position: absolute;
+    font-size: 16px;
+    color: rgb(0 0 0 / 0.25);
+  }
+  .cross-one {
+    right: 4%;
+    top: 15%;
+  }
+  .cross-two {
+    left: 7%;
+    bottom: 15%;
+  }
+  .route {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .route-dots {
+    stroke: #d7c8aa;
+    stroke-width: 1.2;
+    stroke-dasharray: 3 6;
+  }
+  .route-line {
+    stroke: var(--color-gold);
+    stroke-width: 1.4;
+    stroke-dasharray: 500;
+    stroke-dashoffset: 0;
+    animation: route 2.3s 0.3s ease both;
+  }
+  .route-start {
+    fill: #fff;
+    stroke: var(--color-gold);
+    stroke-width: 1.4;
+  }
+  .pop-stage {
+    position: absolute;
+    top: 2%;
+    left: 24%;
+    width: 51%;
+    aspect-ratio: 3 / 4;
+  }
+  .pop-travel {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    animation: glide 5.6s linear infinite;
+  }
+  .pop-sprite {
+    position: absolute;
+    inset: 0;
+    background-image: var(--sprite);
+    background-size: 400% 200%;
+    background-position: 0% 0%;
+    background-repeat: no-repeat;
+    animation: steps-8 0.96s steps(1, end) infinite;
+  }
+  .pop-shadow {
+    position: absolute;
+    left: 29%;
+    bottom: 3.9%;
+    width: 57%;
+    height: 3.5%;
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgb(0 0 0 / 0.14), rgb(0 0 0 / 0.02) 60%, transparent 75%);
+    animation: shadow 0.96s ease-in-out infinite;
+  }
+  .confirm {
+    position: absolute;
+    bottom: 2%;
+    left: 14%;
+    width: 82%;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 20px 22px;
+    background: rgb(255 255 255 / 0.94);
+    border: 1px solid var(--color-line);
+    box-shadow: 0 18px 45px rgb(0 0 0 / 0.06);
+    transform: rotate(-3deg);
+    animation: confirm 0.8s 0.5s ease both;
+  }
+  .confirm-icon {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    color: var(--color-formations);
+    background: #edf1e7;
+  }
+  .check-path {
+    stroke-dasharray: 30;
+    stroke-dashoffset: 0;
+    animation: check 0.75s 0.9s ease both;
+  }
+  .confirm strong {
+    display: block;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .confirm small {
+    display: block;
+    margin-top: 2px;
+    font-size: 13px;
+    color: var(--soft);
+  }
+  .confirm-dot {
+    flex-shrink: 0;
+    margin-left: auto;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-formations);
+  }
+
+  /* ---------- Et maintenant ? ---------- */
+  .next {
+    display: grid;
+    gap: 24px;
+    margin-top: clamp(40px, 6vw, 72px);
+    padding-block: 32px;
+    border-top: 1px solid var(--color-line);
+    border-bottom: 1px solid var(--color-line);
+  }
+  @media (min-width: 900px) {
+    .next {
+      grid-template-columns: 1fr 1fr 1fr;
+      align-items: start;
+    }
+  }
+  .next-head {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .next-icon {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border: 1px solid var(--color-line);
+    border-radius: 50%;
+    color: var(--color-gold-deep);
+  }
+  .next-kicker {
+    color: var(--color-gold-deep);
+  }
+  .next-title {
+    margin-top: 2px;
+    font-size: 22px;
+    font-weight: 700;
+  }
+  .steps {
+    display: contents;
+  }
+  .steps li {
+    display: flex;
+    gap: 14px;
+    padding-left: 24px;
+    border-left: 1px solid var(--color-line);
+  }
+  .step-n {
+    padding-top: 3px;
+    color: var(--color-gold-deep);
+  }
+  .steps h3 {
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .steps p {
+    margin-top: 6px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--soft);
+  }
+  @media (max-width: 899px) {
+    .steps li {
+      padding-left: 0;
+      border-left: 0;
+      padding-top: 18px;
+      border-top: 1px solid var(--color-line);
+    }
+  }
+
+  /* ---------- En attendant ---------- */
+  .meanwhile {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px 32px;
+    padding-block: 28px;
+  }
+  .meanwhile p {
+    font-size: 15px;
+    color: var(--soft);
+  }
+  .doors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 28px;
+  }
+  .doors a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .motion-bar {
+    display: flex;
+    justify-content: flex-end;
+    padding-block: 18px 40px;
+    border-top: 1px solid var(--color-line);
+  }
+  .motion-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    font-size: 13px;
+    color: var(--soft);
+    cursor: pointer;
+  }
+  .motion-toggle::before {
+    content: '❙❙';
+    font-size: 10px;
+    letter-spacing: -1px;
+  }
+  .play-label {
+    display: none;
+  }
+  .merci[data-motion='paused'] .pause-label {
+    display: none;
+  }
+  .merci[data-motion='paused'] .play-label {
+    display: inline;
+  }
+  .merci[data-motion='paused'] .motion-toggle::before {
+    content: '▶';
+    letter-spacing: 0;
+  }
+
+  /* ---------- Arrival of the text ---------- */
+  .reveal {
+    animation: reveal 0.8s var(--ease-out-strong) both;
+  }
+  .r2 {
+    animation-delay: 0.08s;
+  }
+  .r3 {
+    animation-delay: 0.16s;
+  }
+  .r4 {
+    animation-delay: 0.24s;
+  }
+
+  .merci[data-motion='paused'] *,
+  .merci[data-motion='paused'] *::before,
+  .merci[data-motion='paused'] *::after {
+    animation-play-state: paused !important;
+  }
+  .merci[data-motion='paused'] .pop-travel {
+    opacity: 1 !important;
+  }
+
+  @keyframes reveal {
+    from {
+      opacity: 0;
+      transform: translateY(13px);
+    }
+  }
+  @keyframes orbit {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes route {
+    from {
+      stroke-dashoffset: 500;
+      opacity: 0;
+    }
+  }
+  @keyframes check {
+    from {
+      stroke-dashoffset: 30;
+    }
+  }
+  @keyframes steps-8 {
+    0%,
+    100% {
+      background-position: 0% 0%;
+    }
+    12.5% {
+      background-position: 33.333333% 0%;
+    }
+    25% {
+      background-position: 66.666667% 0%;
+    }
+    37.5% {
+      background-position: 100% 0%;
+    }
+    50% {
+      background-position: 0% 100%;
+    }
+    62.5% {
+      background-position: 33.333333% 100%;
+    }
+    75% {
+      background-position: 66.666667% 100%;
+    }
+    87.5% {
+      background-position: 100% 100%;
+    }
+  }
+  @keyframes glide {
+    0% {
+      transform: translateX(13%);
+      opacity: 0;
+    }
+    10% {
+      transform: translateX(10%);
+      opacity: 1;
+    }
+    80% {
+      transform: translateX(-11%);
+      opacity: 1;
+    }
+    95% {
+      transform: translateX(-15.5%);
+      opacity: 0;
+    }
+    100% {
+      transform: translateX(13%);
+      opacity: 0;
+    }
+  }
+  @keyframes shadow {
+    0%,
+    50%,
+    100% {
+      opacity: 0.8;
+      transform: scaleX(0.95);
+    }
+    25%,
+    75% {
+      opacity: 1;
+      transform: scaleX(1.05);
+    }
+  }
+  @keyframes confirm {
+    from {
+      opacity: 0;
+      transform: translateY(12px) rotate(-3deg);
+    }
+  }
+
+  @media (max-width: 599px) {
+    .coord {
+      font-size: 9px;
+    }
+    .confirm {
+      left: 6%;
+      width: 90%;
+      padding: 14px;
+      gap: 10px;
+    }
+    .confirm-icon {
+      width: 36px;
+      height: 36px;
+    }
+    .confirm strong {
+      font-size: 14px;
+    }
+    .confirm small {
+      font-size: 12px;
+    }
+  }
+
+  /* Reduced motion: a still Pop (first frame), everything in place, no pause button. */
+  @media (prefers-reduced-motion: reduce) {
+    .merci *,
+    .merci *::before,
+    .merci *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+    .motion-bar {
+      display: none;
+    }
+  }
+</style>
