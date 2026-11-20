@@ -1,0 +1,157 @@
+---
+// "Que voulez-vous faire ?": the five uses of the shop as photo tiles (a bento: two large,
+// three smaller), each listing its drones and leading to its section below.
+import { Image } from 'astro:assets';
+import SectionHeader from '../ui/SectionHeader.astro';
+import { FAMILIES, USAGES } from '../../data/shop';
+
+const tiles = USAGES.map((u) => ({ ...u, families: FAMILIES.filter((f) => f.usage === u.id).map((f) => f.name.replace(/^DJI /, '')) }));
+---
+
+<section class="uses section-pad bg-paper" aria-labelledby="uses-title">
+  <div class="wrap">
+    <SectionHeader id="uses-title" title="Que voulez-vous faire ?" color="var(--color-boutique)">
+      <p>Choisissez votre usage : nous avons rangé les drones et leurs accessoires pour vous, du premier vol aux missions professionnelles.</p>
+    </SectionHeader>
+
+    <ul class="grid-uses">
+      {
+        tiles.map((t, i) => (
+          <li class:list={['tile', i < 2 && 'big']}>
+            <a href={`#usage-${t.id}`}>
+              <Image src={t.photo} alt="" widths={[480, 720, 1080]} sizes={i < 2 ? '(min-width: 1024px) 50vw, 100vw' : '(min-width: 1024px) 33vw, 100vw'} loading="lazy" style={{ objectPosition: t.focus ?? '50% 50%' }} />
+              <span class="shade" aria-hidden="true"></span>
+              <span class="body">
+                <span class="hud-text families">{t.families.join(' · ')}</span>
+                <span class="title">{t.title}</span>
+                <span class="text">{t.text}</span>
+                <span class="go" aria-hidden="true">→</span>
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .grid-uses {
+    display: grid;
+    gap: 12px;
+    margin-top: clamp(32px, 4vw, 56px);
+  }
+  @media (min-width: 768px) {
+    .grid-uses {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+    .tile {
+      grid-column: span 2;
+    }
+    .tile.big {
+      grid-column: span 3;
+    }
+  }
+  .tile a {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    color: #fff;
+    background: #111;
+  }
+  @media (min-width: 768px) {
+    .tile a {
+      aspect-ratio: auto;
+      height: clamp(260px, 26vw, 360px);
+    }
+    .tile.big a {
+      height: clamp(300px, 32vw, 440px);
+    }
+  }
+  .tile :global(img) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1.02);
+    transition: transform 900ms var(--ease-out-strong);
+  }
+  .shade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgb(0 0 0 / 0.9), rgb(0 0 0 / 0.45) 50%, rgb(0 0 0 / 0.05) 80%);
+  }
+  .body {
+    position: absolute;
+    inset: auto 0 0;
+    display: grid;
+    gap: 6px;
+    padding: clamp(18px, 2.2vw, 28px);
+    padding-right: 64px;
+  }
+  /* White, not gold: gold disappears on snow and sky. */
+  .families {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgb(255 255 255 / 0.9);
+  }
+  .families::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    flex-shrink: 0;
+    background: var(--color-gold);
+  }
+  .title {
+    font-stretch: 112%;
+    font-size: clamp(1.25rem, 1.8vw, 1.6rem);
+    font-weight: 700;
+    line-height: 1.15;
+  }
+  .big .title {
+    font-size: clamp(1.4rem, 2.3vw, 2rem);
+  }
+  .text {
+    max-width: 44ch;
+    font-size: 15px;
+    line-height: 1.5;
+    color: rgb(255 255 255 / 0.78);
+  }
+  .go {
+    position: absolute;
+    right: clamp(18px, 2.2vw, 28px);
+    bottom: clamp(18px, 2.2vw, 28px);
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgb(255 255 255 / 0.4);
+    transition:
+      background-color 200ms ease-out,
+      transform 200ms var(--ease-out-strong);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .tile a:hover :global(img) {
+      transform: scale(1.08);
+    }
+    .tile a:hover .go {
+      background: var(--color-gold);
+      border-color: var(--color-gold);
+      color: var(--color-ink);
+      transform: translateX(3px);
+    }
+  }
+  .tile a:focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 3px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tile :global(img),
+    .go {
+      transition: none;
+    }
+  }
+</style>

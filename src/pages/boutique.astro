@@ -1,14 +1,25 @@
 ---
-// /boutique/ — the shop, rebuilt from the current page: search and the categories mega
-// menu (ShopHero), the full catalogue with filters, Pop's advice, then the bridge to
-// rental and expert help.
+// /boutique/ — reorganised on 2026-11-20 (client: "no dynamism at the top, and below a
+// parade of products with no logic"):
+// 1. ShopShowcase: the best sellers in big photos, changing on their own, with the search.
+// 2. ShopUses: "Que voulez-vous faire ?", five uses as photo tiles.
+// 3. One section per use, one block per drone family: its versions side by side, then the
+//    accessories made for it (data/shop.ts). Sensors close the professional use.
+// 4. Piloting, storage and field gear, then the full catalogue with its filters, in the
+//    same order (family by family), Pop's tip and the bridge to rental.
 import BaseLayout from '../layouts/BaseLayout.astro';
 import JsonLd from '../components/seo/JsonLd.astro';
-import ShopHero from '../components/shop/ShopHero.astro';
+import { Image } from 'astro:assets';
+import Square from '../components/ui/Square.astro';
+import ShopShowcase from '../components/shop/ShopShowcase.astro';
+import ShopUses from '../components/shop/ShopUses.astro';
+import FamilyBlock from '../components/shop/FamilyBlock.astro';
+import ProductCard from '../components/shop/ProductCard.astro';
 import PopTip from '../components/ui/PopTip.astro';
 import ProductGrid from '../components/shop/ProductGrid.astro';
 import ShopBridge from '../components/shop/ShopBridge.astro';
 import { MENU_TILES, SHOP_FILTERS, forSale, productUrl } from '../data/catalog';
+import { CATALOGUE_ORDER, FAMILIES, OTHER_GEAR, SENSORS, USAGES, sensorsPhoto } from '../data/shop';
 import { SITE } from '../data/site';
 
 // Title and description keep the intent of the current WordPress page.
@@ -22,17 +33,98 @@ const structuredData = {
   name: 'Boutique Les Drones Lyonnais',
   itemListElement: forSale.map((p, i) => ({ '@type': 'ListItem', position: i + 1, url: new URL(productUrl(p), SITE.url).href })),
 };
+
+const groups = USAGES.map((u, i) => ({ ...u, n: i + 1, families: FAMILIES.filter((f) => f.usage === u.id) }));
 ---
 
 <BaseLayout title={title} description={description} activity="boutique">
   <JsonLd slot="head" data={structuredData} />
-  <ShopHero />
+  <ShopShowcase />
+  <ShopUses />
+
+  {
+    groups.map((g, gi) => (
+      <section id={`usage-${g.id}`} class:list={['usage scroll-mt-4', gi % 2 === 0 ? 'bg-mist' : 'bg-paper']} aria-labelledby={`usage-${g.id}-title`}>
+        <div class="wrap">
+          <header class="usage-head">
+            <p class="hud-text usage-n">
+              <Square color="var(--color-gold)" class="size-[8px]" />
+              Usage {g.n} sur {groups.length}
+            </p>
+            <h2 id={`usage-${g.id}-title`} class="display usage-title">
+              {g.title}
+            </h2>
+            <p class="usage-text">{g.text}</p>
+            {g.families.length > 1 && (
+              <nav class="jump" aria-label={`Drones : ${g.title}`}>
+                {g.families.map((f) => (
+                  <a href={`#famille-${f.id}`}>{f.name.replace(/^DJI /, '')}</a>
+                ))}
+              </nav>
+            )}
+          </header>
+
+          {g.families.map((f, fi) => (
+            <FamilyBlock family={f} flip={fi % 2 === 1} />
+          ))}
+
+          {g.id === 'inspection' && SENSORS.length > 0 && (
+            <div id="capteurs" class="sensors">
+              <div class="sensors-head">
+                <div class="sensors-photo viewfinder">
+                  <Image src={sensorsPhoto} alt="" widths={[640, 960, 1400]} sizes="(min-width: 1024px) 60vw, 100vw" loading="lazy" />
+                </div>
+                <div>
+                  <h3 class="sensors-title">Capteurs et nacelles</h3>
+                  <p class="sensors-text">Thermique, zoom, photogrammétrie, LiDAR, son et lumière, positionnement RTK : les charges utiles des drones Matrice.</p>
+                </div>
+              </div>
+              <ul class="cards">
+                {SENSORS.map((p) => (
+                  <li>
+                    <ProductCard product={p} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </section>
+    ))
+  }
+
+  {
+    OTHER_GEAR.length > 0 && (
+      <section id="equipement" class="usage bg-paper" aria-labelledby="gear-title">
+        <div class="wrap">
+          <header class="usage-head">
+            <p class="hud-text usage-n">
+              <Square color="var(--color-gold)" class="size-[8px]" />
+              Pour tous les drones
+            </p>
+            <h2 id="gear-title" class="display usage-title">
+              Pilotage, stockage et terrain
+            </h2>
+            <p class="usage-text">Radiocommandes et lunettes, cartes mémoire, pistes de décollage, harnais, batteries et stations des drones professionnels.</p>
+          </header>
+          <ul class="cards">
+            {OTHER_GEAR.map((p) => (
+              <li>
+                <ProductCard product={p} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
+
   <ProductGrid
     id="catalogue"
     title="Tout le catalogue"
-    intro="Drones, versions certifiées C5, capteurs, batteries et accessoires : filtrez pour trouver le bon équipement."
+    intro="Vous savez ce que vous cherchez ? Tous les produits, rangés par famille de drone, à filtrer."
     color="var(--color-ink)"
-    products={forSale}
+    products={CATALOGUE_ORDER}
     filters={SHOP_FILTERS}
     extraFilters={MENU_TILES}
   />
@@ -43,3 +135,114 @@ const structuredData = {
   </div>
   <ShopBridge mode="vente" />
 </BaseLayout>
+
+<style>
+  .usage {
+    padding-block: clamp(56px, 7vw, 104px) clamp(40px, 5vw, 72px);
+  }
+  .usage-head {
+    max-width: 760px;
+    padding-bottom: clamp(24px, 3vw, 40px);
+  }
+  .usage-n {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--color-gold-deep);
+  }
+  .usage-title {
+    margin-top: 12px;
+    font-size: clamp(2rem, 3.8vw, 3.2rem);
+  }
+  .usage-text {
+    max-width: 52ch;
+    margin-top: 14px;
+    font-size: 18px;
+    line-height: 1.55;
+    color: var(--color-ink-soft);
+  }
+  .jump {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 20px;
+  }
+  .jump a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 14px;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid var(--color-line);
+    background: #fff;
+    transition: border-color 150ms ease-out;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .jump a:hover {
+      border-color: var(--color-ink);
+    }
+  }
+  .jump a:focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 2px;
+  }
+
+  .sensors {
+    padding-top: clamp(32px, 4vw, 56px);
+    border-top: 1px solid var(--color-line);
+  }
+  .sensors-head {
+    display: grid;
+    gap: clamp(20px, 3vw, 48px);
+    align-items: end;
+  }
+  @media (min-width: 1024px) {
+    .sensors-head {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    }
+  }
+  .sensors-photo {
+    --vf: rgb(255 255 255 / 0.85);
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 16 / 8;
+    background: #000;
+  }
+  .sensors-photo :global(img) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .sensors-title {
+    font-stretch: 112%;
+    font-size: clamp(1.7rem, 2.8vw, 2.4rem);
+    font-weight: 700;
+    line-height: 1.05;
+  }
+  .sensors-text {
+    margin-top: 10px;
+    max-width: 44ch;
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--color-ink-soft);
+  }
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px 16px;
+    margin-top: clamp(24px, 3vw, 40px);
+  }
+  @media (min-width: 768px) {
+    .cards {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1100px) {
+    .cards {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+</style>
