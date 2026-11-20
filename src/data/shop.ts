@@ -18,6 +18,7 @@ import famMatrice5t from '../assets/shop/fam-matrice-5t.jpg';
 import famMatrice400 from '../assets/shop/fam-matrice-400.jpg';
 import famCapteurs from '../assets/shop/fam-capteurs.jpg';
 import famAir from '../assets/shop/fam-air-3s.jpg';
+// Lito X1 and Air 3S above: DJI photos from the product galleries of the current site.
 // Lifestyle photos from the product galleries (DJI), already in the catalogue.
 import famMini from '../assets/products/dji-mini-5-pro-standard-combo-2.webp';
 import famNeo from '../assets/products/dji-neo-2-4.webp';
@@ -56,7 +57,7 @@ export interface Family {
 export const FAMILIES: Family[] = [
   { id: 'mini-5-pro', name: 'DJI Mini 5 Pro', usage: 'debuter', tagline: 'Moins de 250 g, idéal pour débuter.', photo: famMini, terms: ['mini 5'] },
   { id: 'neo-2', name: 'DJI Neo 2', usage: 'debuter', tagline: 'Ultra-léger, se pilote même à la main.', photo: famNeo, terms: ['neo'] },
-  { id: 'lito-x1', name: 'DJI Lito X1', usage: 'debuter', tagline: 'Compact et simple, pour bien démarrer.', photo: famLito, focus: '20% 50%', terms: ['lito'] },
+  { id: 'lito-x1', name: 'DJI Lito X1', usage: 'debuter', tagline: 'Compact et simple, pour bien démarrer.', photo: famLito, focus: '30% 50%', terms: ['lito'] },
   { id: 'air-3s', name: 'DJI Air 3S', usage: 'video', tagline: 'Le polyvalent : léger et très bien équipé.', photo: famAir, terms: ['air 3'] },
   { id: 'mavic-4-pro', name: 'DJI Mavic 4 Pro', usage: 'video', tagline: 'Trois caméras, qualité d’image de référence.', photo: famMavic, terms: ['mavic 4'] },
   { id: 'avata-360', name: 'DJI Avata 360', usage: 'fpv', tagline: 'Immersif, pour voler en FPV, à 360°.', photo: famAvata360, terms: ['avata 360'] },

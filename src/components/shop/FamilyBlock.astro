@@ -17,11 +17,15 @@ const versions = await Promise.all(versionsOf(family).map(async (p) => ({ p, pho
 const accessories = await Promise.all(accessoriesOf(family).map(async (p) => ({ p, photo: await productPhoto(p, 1) })));
 const from = fromPrice(versions.map((v) => v.p));
 const classes = [...new Set(versions.map((v) => v.cls).filter(Boolean))];
+// The photo fills its frame (4:5 on large screens, 16:10 on small ones): a wide photo
+// needs more pixels than the frame's width, or it is upscaled and blurry.
+const ratio = family.photo.width / family.photo.height;
+const sizes = `(min-width: 1024px) ${Math.ceil(38 * Math.max(1, 1.25 * ratio))}vw, ${Math.ceil(100 * Math.max(1, 0.625 * ratio))}vw`;
 ---
 
 <article id={`famille-${family.id}`} class:list={['family', flip && 'flip']} aria-labelledby={`famille-${family.id}-title`}>
   <div class="visual viewfinder">
-    <Image src={family.photo} alt="" widths={[480, 720, 960]} sizes="(min-width: 1024px) 40vw, 100vw" loading="lazy" style={{ objectPosition: family.focus ?? '50% 50%' }} />
+    <Image src={family.photo} alt="" widths={[480, 720, 960, 1280, 1600, 2000]} sizes={sizes} loading="lazy" style={{ objectPosition: family.focus ?? '50% 50%' }} />
   </div>
 
   <div class="content">
@@ -97,6 +101,10 @@ const classes = [...new Set(versions.map((v) => v.cls).filter(Boolean))];
     .family {
       grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
       align-items: start;
+    }
+    /* Photo on the right: the columns swap too, so every photo has the same size. */
+    .family.flip {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
     }
     .family.flip .visual {
       order: 2;
