@@ -148,7 +148,9 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
 - `/boutique/` (reorganised 2026-11-20, client: "no dynamism at the top, a parade of products
   with no logic below"): ShopShowcase (dark, title + search, the best sellers Mavic 4 Pro /
   Mini 5 Pro / Neo 2 / Matrice 4 in big photos changing every 6.5 s, names with progress
-  bars, pause button, hover/focus pause, swipe; reduced motion = no autoplay), ShopUses
+  bars, pause button, hover/focus pause, swipe; reduced motion = no autoplay), ShopMenu (the
+  categories band of the current site, 5 tabs of tiles, SHOP_MENU in data/catalog.ts, each
+  tile a catalogue filter; kept under the showcase at the client's request), ShopUses
   ("Que voulez-vous faire ?", 5 photo tiles), then one section per use with one FamilyBlock
   per drone family (photo, "Choisissez votre version" rows with class and TTC/HT price,
   "Accessoires compatibles" row), sensors after the professional use, "Pilotage, stockage
@@ -157,7 +159,8 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   product joins its family by its name, the rest falls into sensors / other gear. Photos in
   src/assets/shop/ (real photos: current site's media library and DJI press/sample images;
   dji.com serves its US site here, without the Mavic 4 Pro / Mini 5 Pro / Neo 2 pages).
-  ShopHero (mega menu, SHOP_MENU) is no longer used by /boutique/.
+  ShopHero (search + ShopMenu + the Octobre Rose band, data/campaign.ts) is no longer used by
+  /boutique/: for a seasonal campaign, bring its band back into ShopShowcase.
 - `/location-drone-et-camera/`: RentalHero = search + category tiles + featured packs.
 - Heroes are deliberately different per page; do not reuse one hero everywhere.
 - Activity headers (client request, 2026-11-19): /prestations/, /formations-drone-a-lyon/,

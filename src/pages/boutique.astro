@@ -2,6 +2,7 @@
 // /boutique/ — reorganised on 2026-11-20 (client: "no dynamism at the top, and below a
 // parade of products with no logic"):
 // 1. ShopShowcase: the best sellers in big photos, changing on their own, with the search.
+//    Under it, ShopMenu: the categories band of the current site (client request, same day).
 // 2. ShopUses: "Que voulez-vous faire ?", five uses as photo tiles.
 // 3. One section per use, one block per drone family: its versions side by side, then the
 //    accessories made for it (data/shop.ts). Sensors close the professional use.
@@ -12,6 +13,7 @@ import JsonLd from '../components/seo/JsonLd.astro';
 import { Image } from 'astro:assets';
 import Square from '../components/ui/Square.astro';
 import ShopShowcase from '../components/shop/ShopShowcase.astro';
+import ShopMenu from '../components/shop/ShopMenu.astro';
 import ShopUses from '../components/shop/ShopUses.astro';
 import FamilyBlock from '../components/shop/FamilyBlock.astro';
 import ProductCard from '../components/shop/ProductCard.astro';
@@ -40,6 +42,7 @@ const groups = USAGES.map((u, i) => ({ ...u, n: i + 1, families: FAMILIES.filter
 <BaseLayout title={title} description={description} activity="boutique">
   <JsonLd slot="head" data={structuredData} />
   <ShopShowcase />
+  <ShopMenu />
   <ShopUses />
 
   {

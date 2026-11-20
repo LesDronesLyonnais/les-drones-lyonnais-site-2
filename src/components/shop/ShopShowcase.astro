@@ -168,9 +168,10 @@ const slides = SHOWCASE.map((s) => {
 </script>
 
 <style>
+  /* Not clipped and above the categories band: the search results drop down over it. */
   .showcase {
     position: relative;
-    overflow: hidden;
+    z-index: 2;
     color: #fff;
     background: var(--color-ink);
     padding-block: clamp(20px, 3vw, 36px) clamp(32px, 4vw, 56px);
