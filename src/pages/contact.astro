@@ -198,9 +198,7 @@ const ld = {
                     {err('email') && <span id="err-email" class="err">{err('email')}</span>}
                   </label>
                   <label class="field">
-                    <span class="label">
-                      Téléphone <span class="opt">facultatif</span>
-                    </span>
+                    <span class="label">Téléphone</span>
                     <input type="tel" name="phone" value={values.phone} autocomplete="tel" maxlength={40} placeholder="06 00 00 00 00" aria-invalid={err('phone') ? 'true' : undefined} aria-describedby={err('phone') ? 'err-phone' : undefined} />
                     {err('phone') && <span id="err-phone" class="err">{err('phone')}</span>}
                   </label>
@@ -398,12 +396,6 @@ const ld = {
   }
   .req {
     color: var(--color-gold-deep);
-  }
-  .opt {
-    margin-left: 4px;
-    font-size: 13px;
-    font-weight: 400;
-    color: var(--color-muted);
   }
 
   .topics {
