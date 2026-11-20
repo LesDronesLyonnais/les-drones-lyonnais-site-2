@@ -3,11 +3,11 @@
 // through the screen, then the essentials — what we do, figures, how to reach us.
 import Button from '../ui/Button.astro';
 import { MANIFESTO, HERO, FACTS } from '../../data/home';
-import { CLIENTS } from '../../data/clients';
 import { SITE } from '../../data/site';
 
 const words = MANIFESTO.split(' ');
-const facts = [...FACTS, { value: String(CLIENTS.length), label: 'clients, d’EDF à TF1' }];
+// No client count (client request, 2026-11-20): the logos are only a selection.
+const facts = FACTS;
 ---
 
 <section aria-labelledby="manifesto-title" class="manifesto-section relative bg-ink pt-16 pb-20 text-white md:pt-24 md:pb-28">
