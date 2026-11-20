@@ -149,8 +149,12 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   with no logic below"): ShopShowcase (dark, title + search, the best sellers Mavic 4 Pro /
   Mini 5 Pro / Neo 2 / Matrice 4 in big photos changing every 6.5 s, names with progress
   bars, pause button, hover/focus pause, swipe; reduced motion = no autoplay), ShopMenu (the
-  categories band of the current site, 5 tabs of tiles, SHOP_MENU in data/catalog.ts, each
-  tile a catalogue filter; kept under the showcase at the client's request), ShopUses
+  categories of the current site, SHOP_MENU in data/catalog.ts, kept under the showcase at the
+  client's request, then redesigned the same day — "clearer, more modern, centred": centred
+  segmented control with icons and a sliding black block, "Par réglementation" shown as
+  "Selon votre permis", one sentence per tab, centred cards with the cheapest product's photo
+  or the class (C0…C6) itself, count; phones scroll the cards; click only; Pop help line +
+  "Voir les N produits"; each card is a catalogue filter), ShopUses
   ("Que voulez-vous faire ?", 5 photo tiles), then one section per use with one FamilyBlock
   per drone family (photo, "Choisissez votre version" rows with class and TTC/HT price,
   "Accessoires compatibles" row), sensors after the professional use, "Pilotage, stockage
