@@ -330,7 +330,7 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   shop, rental, services, trainings; then annex 1 = legal guarantee box D.211-2, annex 2 =
   withdrawal form R.221-1 — both typed from memory and secondary sources, Légifrance was
   behind a robot check: to verify word for word). Commercial figures in TERMS and the
-  cancellation lists (proposals to validate); MEDIATOR = CM2C (chosen 2026-11-21 as the cheapest:
+  cancellation lists (validated by the client on 2026-11-21); MEDIATOR = CM2C (chosen 2026-11-21 as the cheapest:
   ~48 € / 3 years + 36 € per case; the client must sign up on cm2c.net). Rental deposit = the
   value of the equipment (client, 2026-11-21), also said on rental product pages. Liability limits never apply to consumers where the law forbids
   it. Both legal pages use components/legal/LegalPage.astro (head, sticky contents, print
@@ -339,7 +339,14 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
 - /reglement-interieur/ (2026-11-21): the training body's internal rules (client's document of
   2024-02-19, its art. 14 says it is online), transcribed with obvious errors fixed ("Drone On
   Air" → LDL, Auvergne-Rhône-Alpes, OPCO / France Travail, typos). Linked from the CGV and the
-  Qualiopi band of /formations-drone-a-lyon/.
+  Qualiopi band of /formations-drone-a-lyon/. Downloadable PDF made from the page:
+  `node scripts/render-reglement-pdf.mjs` (site served locally) → public/documents/.
+- /politique-de-confidentialite/ (2026-11-21): what the site really does (checked in the code:
+  contact form, accounts, Brevo, no analytics, Pop runs in the browser), purposes and legal
+  bases, recipients, transfers (DPF / SCC), retention (contact requests 3 years — purged when
+  /admin/demandes/ is opened, with expired sessions, links and old failed sign-ins; inactive
+  accounts 3 years — not automated yet, invoices must be kept 10 years), security, cookies,
+  rights, CNIL, minors. Tables turn into cards on phones (LegalPage .table + data-label).
 
 Next: Stripe checkout (from the cart) and booking
 Worker, legal pages, redirect plan.

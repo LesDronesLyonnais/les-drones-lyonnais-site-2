@@ -12,7 +12,7 @@
 // To be reviewed by a lawyer. Commercial figures (fees, delays) are in TERMS below.
 import { COMPANY, SITE } from './site';
 
-/** Commercial terms proposed on 2026-11-21, to be validated by the client. */
+/** Commercial terms proposed on 2026-11-21 and validated by the client the same day. */
 export const TERMS = {
   quoteValidityDays: 30,
   serviceDepositPercent: 30,
@@ -158,7 +158,7 @@ ${box(`<p><strong>Consommateurs.</strong> Aucune stipulation des présentes ne l
       {
         id: 'donnees',
         title: 'Données personnelles',
-        html: `<p>${LDL} traite les données personnelles de ses Clients pour gérer les Commandes, les locations, les prestations, les formations, la facturation et la relation client, sur le fondement de l’exécution du contrat et de ses obligations légales. Les données des Stagiaires peuvent être transmises aux financeurs (CPF, OPCO) et aux autorités (DGAC) lorsque la formation ou la réglementation l’exige. Le détail des traitements et vos droits figurent dans nos <a href="/mentions-legales/#donnees">mentions légales</a>.</p>`,
+        html: `<p>${LDL} traite les données personnelles de ses Clients pour gérer les Commandes, les locations, les prestations, les formations, la facturation et la relation client, sur le fondement de l’exécution du contrat et de ses obligations légales. Les données des Stagiaires peuvent être transmises aux financeurs (CPF, OPCO) et aux autorités (DGAC) lorsque la formation ou la réglementation l’exige. Le détail des traitements, des durées de conservation et de vos droits figure dans notre <a href="/politique-de-confidentialite/">politique de confidentialité</a>.</p>`,
       },
       {
         id: 'reclamations',

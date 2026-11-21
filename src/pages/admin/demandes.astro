@@ -1,7 +1,8 @@
 ---
 // Messages from the contact page (/contact/), newest first: who, about what (activity,
 // subject, what the button carried), the message, and a status the team sets once it has
-// answered. Filters: new / handled / all, and by activity.
+// answered. Filters: new / handled / all, and by activity. Opening the page also applies
+// the retention periods of the privacy policy (see below).
 import AccountLayout from '../../layouts/AccountLayout.astro';
 import Square from '../../components/ui/Square.astro';
 import { db } from '../../lib/server/auth';
@@ -34,6 +35,17 @@ if (Astro.request.method === 'POST') {
     return Astro.redirect(back('Demande supprimée.'));
   }
 }
+
+// Retention, as the privacy policy says: contact requests are kept 3 years, then deleted.
+// Expired sessions and sign-in links, and failed sign-ins older than a day, go too.
+// (Sessions and links store ISO dates; the other tables SQLite's datetime format.)
+const nowIso = new Date().toISOString();
+await db().batch([
+  db().prepare("DELETE FROM contact_requests WHERE created_at < datetime('now', '-3 years')"),
+  db().prepare('DELETE FROM sessions WHERE expires_at < ?').bind(nowIso),
+  db().prepare('DELETE FROM login_tokens WHERE expires_at < ?').bind(nowIso),
+  db().prepare("DELETE FROM login_failures WHERE failed_at < datetime('now', '-1 day')"),
+]);
 
 const statusParam = Astro.url.searchParams.get('statut') ?? 'nouvelle';
 const status = ['nouvelle', 'traitee', 'toutes'].includes(statusParam) ? statusParam : 'nouvelle';

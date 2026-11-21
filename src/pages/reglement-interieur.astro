@@ -5,7 +5,8 @@
 // it is, with obvious errors corrected and listed to the client: "Drone On Air" (another
 // company) → Les Drones Lyonnais, "Rhône-Alpes" → Auvergne-Rhône-Alpes, the funders' list
 // brought up to date (Fongecif, Pôle emploi → OPCO, France Travail), typos. Company facts
-// from COMPANY / SITE. Layout: components/legal/LegalPage.astro.
+// from COMPANY / SITE. Layout: components/legal/LegalPage.astro. The downloadable PDF
+// (public/documents/) is made from this page: node scripts/render-reglement-pdf.mjs.
 import LegalPage, { type TocEntry } from '../components/legal/LegalPage.astro';
 import { COMPANY, SITE } from '../data/site';
 
@@ -71,6 +72,7 @@ const art = (id: string) => SECTIONS.flatMap((s) => s.articles).find((a) => a.id
       <strong>{COMPANY.legalName}</strong>, organisme de formation – {contact} – <a href={SITE.phoneHref}>{SITE.phone}</a> – <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
     </p>
     <p>SIRET {COMPANY.siret} – Déclaration d’activité n° {COMPANY.training.nda} auprès du préfet de la région {COMPANY.training.region}</p>
+    <p class="no-print"><a href="/documents/reglement-interieur-les-drones-lyonnais.pdf" download>Télécharger le règlement intérieur (PDF)</a></p>
   </div>
 
   <header class="part-head" id="preambule">

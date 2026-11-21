@@ -108,20 +108,10 @@ const num = (id: string) => pad(SECTIONS.findIndex((s) => s.id === id));
   <section id="donnees" aria-labelledby="donnees-title">
     <h2 id="donnees-title"><span class="hud-text n">{num('donnees')}</span>Données personnelles</h2>
     <p>
-      {COMPANY.legalName} est responsable des traitements de données personnelles réalisés sur ce site, conformément au Règlement général sur la protection des données (RGPD, règlement (UE) 2016/679) et à la loi « Informatique et Libertés » du 6 janvier 1978 modifiée.
+      {COMPANY.legalName} est responsable des traitements de données personnelles réalisés sur ce site, conformément au Règlement général sur la protection des données (RGPD) et à la loi « Informatique et Libertés » du 6 janvier 1978 modifiée. Les données collectées (formulaire de contact, espace client, commandes, locations, formations), leurs finalités, leurs destinataires, leurs durées de conservation et vos droits sont détaillés dans notre <a href="/politique-de-confidentialite/">politique de confidentialité</a>.
     </p>
-    <h3>Quelles données, pour quoi faire</h3>
-    <ul class="dots">
-      <li><strong>Formulaire de contact</strong> : nom, adresse e-mail, téléphone si vous le donnez, sujet et message. Ils servent à répondre à votre demande (devis, commande, réservation, formation).</li>
-      <li><strong>Espace client</strong> : adresse e-mail, nom, société et téléphone. Ils servent à gérer votre compte, vos commandes, vos missions, vos factures et vos livrables.</li>
-      <li><strong>E-mails</strong> : les e-mails du site (accusé de réception, réponse, mot de passe oublié) sont envoyés par notre prestataire Brevo (Sendinblue SAS, France).</li>
-    </ul>
     <p>
-      Ces données sont réservées à l’équipe {COMPANY.legalName} et à ses prestataires techniques (hébergement, envoi d’e-mails). Elles ne sont ni vendues ni cédées. Elles sont conservées le temps nécessaire au traitement de votre demande et à la relation commerciale, puis supprimées ou archivées pendant les durées imposées par la loi (comptabilité, facturation).
-    </p>
-    <h3>Vos droits</h3>
-    <p>
-      Vous disposez d’un droit d’accès, de rectification, d’effacement, de limitation, d’opposition et de portabilité de vos données. Pour l’exercer, écrivez-nous à <a href={`mailto:${SITE.email}`}>{SITE.email}</a>. Si vous estimez, après nous avoir contactés, que vos droits ne sont pas respectés, vous pouvez adresser une réclamation à la CNIL (<a href="https://www.cnil.fr" rel="noopener">cnil.fr</a>).
+      Pour exercer vos droits (accès, rectification, effacement, opposition, limitation, portabilité), écrivez-nous à <a href={`mailto:${SITE.email}`}>{SITE.email}</a>. Vous pouvez aussi adresser une réclamation à la CNIL (<a href="https://www.cnil.fr" rel="noopener">cnil.fr</a>).
     </p>
   </section>
 
@@ -135,7 +125,7 @@ const num = (id: string) => pad(SECTIONS.findIndex((s) => s.id === id));
       <li>le stockage local de votre navigateur, pour garder votre panier et l’onglet choisi sur la page d’accueil ;</li>
       <li>des cookies techniques de sécurité déposés par notre hébergeur (protection contre les robots).</li>
     </ul>
-    <p>Les contenus de tiers intégrés à certaines pages (galerie et vidéos de timelapse Tikee) peuvent déposer leurs propres cookies, régis par les conditions de ces services.</p>
+    <p>Les contenus de tiers intégrés à certaines pages (galerie et vidéos de timelapse Tikee) peuvent déposer leurs propres cookies, régis par les conditions de ces services. Détails dans notre <a href="/politique-de-confidentialite/#cookies">politique de confidentialité</a>.</p>
   </section>
 
   <section id="responsabilite" aria-labelledby="responsabilite-title">

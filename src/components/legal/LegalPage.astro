@@ -109,6 +109,13 @@ const { title, metaTitle, description, updated, toc } = Astro.props;
     margin-top: 12px;
     font-size: clamp(2.2rem, 4.4vw, 3.8rem);
   }
+  /* Very small phones: long words ("confidentialité") stay on screen. */
+  @media (max-width: 379px) {
+    .title {
+      font-size: 1.7rem;
+      overflow-wrap: anywhere;
+    }
+  }
   .meta {
     display: flex;
     flex-wrap: wrap;
@@ -387,6 +394,56 @@ const { title, metaTitle, description, updated, toc } = Astro.props;
     overflow-wrap: anywhere;
   }
 
+  /* Tables (privacy policy): rows of cells; on phones each row becomes a card, every cell
+     labelled by its column (data-label). */
+  .legal-content :global(.table) {
+    width: 100%;
+    margin-top: 18px;
+    border-collapse: collapse;
+    font-size: 15px;
+  }
+  .legal-content :global(.table th),
+  .legal-content :global(.table td) {
+    padding: 12px 14px;
+    text-align: left;
+    vertical-align: top;
+    line-height: 1.55;
+    border-bottom: 1px solid var(--color-line);
+  }
+  .legal-content :global(.table th) {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-muted);
+    background: var(--color-mist);
+  }
+  .legal-content :global(.table td) {
+    color: var(--color-ink-soft);
+  }
+  .legal-content :global(.table td:first-child) {
+    font-weight: 600;
+    color: var(--color-ink);
+  }
+  @media (max-width: 699px) {
+    .legal-content :global(.table thead) {
+      display: none;
+    }
+    .legal-content :global(.table tr) {
+      display: block;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--color-line);
+    }
+    .legal-content :global(.table td) {
+      display: block;
+      padding: 3px 0;
+      border: 0;
+    }
+    .legal-content :global(.table td[data-label]:not(:first-child)::before) {
+      content: attr(data-label) ' : ';
+      font-weight: 600;
+      color: var(--color-muted);
+    }
+  }
+
   /* ---------- Print: the text only ---------- */
   @media print {
     :global(.ldl-header),
@@ -395,7 +452,9 @@ const { title, metaTitle, description, updated, toc } = Astro.props;
     :global([data-cart]),
     :global([data-to-top]),
     .toc,
-    .print {
+    .print,
+    .crumbs,
+    :global(.no-print) {
       display: none !important;
     }
     .legal-head {
@@ -433,6 +492,7 @@ const { title, metaTitle, description, updated, toc } = Astro.props;
       color: #000;
       background: none;
       border: 1.5pt solid #000;
+      break-inside: avoid-page;
       break-after: avoid-page;
     }
     .legal-content :global(.part-head p:not(.kicker)) {
