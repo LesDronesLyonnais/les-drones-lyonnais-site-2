@@ -154,10 +154,11 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   exercise is narrower and centred in the clear middle (C, passed to the script by
   data-centre), the flight zone starts after the copy, and the exercise is hidden below 1180px.
   Mouse effect (2026-11-21, client liked the hover of les-formateurs-ia.fr's training pages):
-  lib/point-cloud.ts, a canvas over the field — survey points invisible at rest light up under
-  the mouse in the path's colour and link into a triangulated mesh, a few become ground control
-  targets, the mesh fades behind; a scan line passes on arrival and on each change of path.
-  Mouse only, nothing under reduced motion. DeckHero.astro
+  lib/point-cloud.ts — faint survey points light up under the mouse in the path's colour and
+  link into a triangulated mesh, a few become ground control targets, the mesh fades behind;
+  a scan line passes once when the section shows. Tried on the dark hero first, then moved to
+  the white FormationGuide at the client's request ("too busy on the black part"): keep it off
+  the dark hero. Mouse only, nothing under reduced motion. DeckHero.astro
   is no longer used by any page.
   Below it (2026-10-28, client found the catalogue unclear): FormationGuide ("Par où
   commencer ?": the 3 steps Open/BAPD → Spécifique/CATS → spécialisation, LEVEL_GUIDE,
