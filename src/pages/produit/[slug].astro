@@ -9,6 +9,7 @@ import { Image, getImage } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import JsonLd from '../../components/seo/JsonLd.astro';
 import Button from '../../components/ui/Button.astro';
+import ClassBadge from '../../components/ui/ClassBadge.astro';
 import Square from '../../components/ui/Square.astro';
 import ProductCard from '../../components/shop/ProductCard.astro';
 import popDrone from '../../assets/pop/drone.webp';
@@ -154,7 +155,7 @@ const popAdvice = {
             ))
           }
           <span class="badges">
-            {cls && <span class="badge hud-text">Classe {cls}</span>}
+            {cls && <ClassBadge cls={cls} class="class-on-photo" />}
             {rose && <span class="badge badge-rose hud-text" data-rose-until={OCTOBRE_ROSE.until}>♥ {OCTOBRE_ROSE.label}</span>}
           </span>
           {images.length > 1 && (
@@ -477,6 +478,10 @@ const popAdvice = {
     padding: 4px 10px;
     color: #fff;
     background: var(--color-ink);
+  }
+  /* The class as the official label(s), on a white plate (ClassBadge). */
+  .badges :global(.class-on-photo) {
+    --label-w: clamp(64px, 7vw, 96px);
   }
   .badge-rose {
     background: #e83e8c;

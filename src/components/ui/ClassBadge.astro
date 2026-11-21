@@ -1,0 +1,36 @@
+---
+// A drone's class on its photos, as the official EU labels (client, 2026-11-21: "the
+// pictograms rather than the text"): "C2" → one label, "C0/C1" or "C2 / C6" → two, on a
+// white plate so they read on any photo. Screen readers and the tooltip get the words.
+// Size with --label-w (width of one label).
+import ClassLabel from './ClassLabel.astro';
+
+interface Props {
+  /** As given by droneClass(): "C2", "C0/C1", "C2 / C6"… */
+  cls: string;
+  class?: string;
+}
+const { cls, class: className } = Astro.props;
+const digits = [...cls.matchAll(/C(\d)/g)].map((m) => m[1]);
+const text = `Classe ${cls.replace(/\s*\/\s*/g, ' ou ')}`;
+---
+
+<span class:list={['class-badge', className]} role="img" aria-label={text} title={text}>
+  {digits.map((d) => <ClassLabel digit={d} />)}
+</span>
+
+<style>
+  .class-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--label-w, 60px) * 0.12);
+    padding: calc(var(--label-w, 60px) * 0.08) calc(var(--label-w, 60px) * 0.1);
+    color: var(--color-ink);
+    background: #fff;
+  }
+  .class-badge :global(.class-label) {
+    display: block;
+    width: var(--label-w, 60px);
+    height: auto;
+  }
+</style>
