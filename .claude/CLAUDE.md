@@ -313,8 +313,10 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   site.ts), from the public company register (recherche-entreprises.api.gouv.fr): SARL,
   SIREN 894 357 755, registered office in Morancé (≠ the Limonest office of SITE.address),
   APE 59.11B, manager Dylan Castano (director of publication), training body NDA
-  84 69 19979 69, Qualiopi. Capital (1 000 €, from the 2022 page) and RCS registry to confirm
-  on the Kbis. Sections: publisher, publication, host (Cloudflare), training body, IP and
+  84 69 19979 69; capital 1 000 €, RCS Villefranche-Tarare, office and director confirmed by
+  the client on 2026-11-21. Qualiopi: logo (assets/brand/qualiopi.png, cut from the
+  certificate) + the mandatory category line ("actions de formation"), certificate
+  CW202520-4788 by BCI France, valid until 2027-03-04 — remove or renew the logo then. Sections: publisher, publication, host (Cloudflare), training body, IP and
   credits (IGN map), personal data (contact form, accounts, Brevo), cookies (session cookie
   only when signed in, local storage, host's security cookies; no analytics), liability,
   law. Table of contents sticky on large screens.

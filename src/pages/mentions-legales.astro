@@ -7,7 +7,9 @@
 // Brevo, no audience measurement, no advertising). Static; a table of contents on the side
 // on large screens.
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { Image } from 'astro:assets';
 import Square from '../components/ui/Square.astro';
+import qualiopiLogo from '../assets/brand/qualiopi.png';
 import { COMPANY, HOST, SITE } from '../data/site';
 
 const UPDATED = '21 novembre 2026';
@@ -103,7 +105,19 @@ const num = (id: string) => pad(SECTIONS.findIndex((s) => s.id === id));
         <p>
           Déclaration d’activité enregistrée sous le numéro <strong>{COMPANY.training.nda}</strong> auprès du préfet de la région {COMPANY.training.region}. Cet enregistrement ne vaut pas agrément de l’État.
         </p>
-        {COMPANY.training.qualiopi && <p>{COMPANY.legalName} est un organisme de formation certifié Qualiopi.</p>}
+        {
+          COMPANY.training.qualiopi && (
+            <div class="qualiopi">
+              <Image src={qualiopiLogo} alt="Qualiopi, processus certifié – République française" width={240} densities={[1, 2]} class="qualiopi-logo" />
+              <div>
+                <p class="qualiopi-category">La certification qualité a été délivrée au titre de la catégorie d’action suivante : <strong>{COMPANY.training.qualiopi.category.toUpperCase()}</strong>.</p>
+                <p class="qualiopi-meta">
+                  Certificat n° {COMPANY.training.qualiopi.number} délivré par {COMPANY.training.qualiopi.body}, depuis le {COMPANY.training.qualiopi.since}, valable jusqu’au {COMPANY.training.qualiopi.until}.
+                </p>
+              </div>
+            </div>
+          )
+        }
       </section>
 
       <section id="propriete" aria-labelledby="propriete-title">
@@ -320,6 +334,34 @@ const num = (id: string) => pad(SECTIONS.findIndex((s) => s.id === id));
     width: 7px;
     height: 7px;
     background: var(--color-gold);
+  }
+
+  /* Qualiopi: the logo with the certified category under or beside it (charter of the mark). */
+  .qualiopi {
+    display: grid;
+    gap: 16px 28px;
+    align-items: center;
+    margin-top: 22px;
+    padding: 22px;
+    border: 1px solid var(--color-line);
+  }
+  @media (min-width: 640px) {
+    .qualiopi {
+      grid-template-columns: 200px minmax(0, 1fr);
+    }
+  }
+  .qualiopi :global(.qualiopi-logo) {
+    width: 200px;
+    max-width: 100%;
+    height: auto;
+  }
+  .content .qualiopi p {
+    margin-top: 0;
+  }
+  .content .qualiopi .qualiopi-meta {
+    margin-top: 8px;
+    font-size: 15px;
+    color: var(--color-muted);
   }
 
   /* The company facts as editorial rows. */

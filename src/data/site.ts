@@ -46,8 +46,8 @@ export const NAV: Activity[] = [ACTIVITIES.prestations, ACTIVITIES.formations, A
  *  company register (recherche-entreprises.api.gouv.fr, checked on 2026-11-21) — name,
  *  form (5499 = SARL), SIREN / SIRET, registered office, APE code, manager, training body
  *  number and Qualiopi — and from the legal notice of the current site (capital, 2022).
- *  The capital and the RCS registry (Morancé → Villefranche-Tarare) are to be confirmed on
- *  the Kbis. The registered office is not the office of the contact page (SITE.address). */
+ *  Capital and RCS (Villefranche-Tarare) confirmed by the client on 2026-11-21. The
+ *  registered office is not the office of the contact page (SITE.address). */
 export const COMPANY = {
   legalName: 'Les Drones Lyonnais',
   form: 'Société à responsabilité limitée (SARL)',
@@ -60,7 +60,12 @@ export const COMPANY = {
   headOffice: { street: '400 chemin de la Radissonne', postalCode: '69480', locality: 'Morancé' },
   /** Manager (gérant), director of publication. */
   director: 'Dylan Castano',
-  training: { nda: '84 69 19979 69', region: 'Auvergne-Rhône-Alpes', qualiopi: true },
+  training: {
+    nda: '84 69 19979 69',
+    region: 'Auvergne-Rhône-Alpes',
+    /** From the certificate the client sent on 2026-11-21. Remove the logo if it lapses. */
+    qualiopi: { number: 'CW202520-4788', body: 'BCI France', category: 'actions de formation', since: '20 novembre 2025', until: '4 mars 2027' },
+  },
 } as const;
 
 /** Host of the site (LCEN art. 6): name, address, phone. */
