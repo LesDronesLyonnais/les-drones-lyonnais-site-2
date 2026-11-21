@@ -76,7 +76,7 @@ export const HOST = {
   url: 'https://www.cloudflare.com',
 } as const;
 
-// Legal pages: not linked on the current site yet, to be created with the migration.
+// Legal pages, linked in the footer. The privacy policy is still to write.
 export const LEGAL = [
   { label: 'Mentions légales', href: '/mentions-legales/' },
   { label: 'Politique de confidentialité', href: '/politique-de-confidentialite/' },

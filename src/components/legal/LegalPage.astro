@@ -1,0 +1,425 @@
+---
+// Shared layout of the legal pages (mentions légales, conditions générales): a grey head
+// with breadcrumb, title, update date and a print / PDF button; a table of contents (one
+// level, or parts with their articles), sticky on large screens; the text. Print styles
+// keep only the text (header, footer, contents, Pop and cart hidden).
+// The page writes its content in the slot with: <section id> + <h2> (<span class="n">),
+// <h3>, <p>, <ul class="dots">, <dl class="facts">, <div class="box">.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Square from '../ui/Square.astro';
+
+export interface TocEntry {
+  id: string;
+  title: string;
+  /** Number shown before the title ("01", "Art. 3"…). */
+  n?: string;
+  items?: TocEntry[];
+}
+interface Props {
+  title: string;
+  metaTitle: string;
+  description: string;
+  updated: string;
+  toc: TocEntry[];
+}
+const { title, metaTitle, description, updated, toc } = Astro.props;
+---
+
+<BaseLayout title={metaTitle} description={description} activity="general">
+  <section class="legal-head">
+    <div class="wrap">
+      <nav aria-label="Fil d’Ariane" class="hud-text crumbs">
+        <a href="/">Accueil</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">{title}</span>
+      </nav>
+      <h1 class="display title">
+        <Square color="var(--color-gold)" class="mt-[0.22em] size-[0.3em] shrink-0" />
+        {title}
+      </h1>
+      <div class="meta">
+        <p class="updated hud-text">Mise à jour le {updated}</p>
+        <button type="button" class="print" data-print>
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 7V2.5h10V7M5 14H3V8h14v6h-2M6 11h8v6.5H6z"></path></svg>
+          Imprimer ou enregistrer en PDF
+        </button>
+      </div>
+      <slot name="intro" />
+    </div>
+  </section>
+
+  <div class="wrap legal">
+    <aside class="toc" aria-label="Sommaire">
+      <p class="hud-text toc-title">Sommaire</p>
+      <ol>
+        {
+          toc.map((e) => (
+            <li class:list={[e.items && 'part']}>
+              <a href={`#${e.id}`}>
+                {e.n && <span class="hud-text">{e.n}</span>}
+                {e.title}
+              </a>
+              {e.items && (
+                <ol class="sub">
+                  {e.items.map((s) => (
+                    <li>
+                      <a href={`#${s.id}`}>
+                        {s.n && <span class="hud-text">{s.n}</span>}
+                        {s.title}
+                      </a>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </li>
+          ))
+        }
+      </ol>
+    </aside>
+
+    <article class="legal-content">
+      <slot />
+    </article>
+  </div>
+</BaseLayout>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-print]').forEach((b) => b.addEventListener('click', () => print()));
+</script>
+
+<style>
+  .legal-head {
+    padding-block: clamp(32px, 4vw, 56px) clamp(28px, 3vw, 44px);
+    border-bottom: 1px solid var(--color-line);
+    background: var(--color-mist);
+  }
+  .crumbs {
+    display: flex;
+    gap: 10px;
+    color: var(--color-muted);
+  }
+  .crumbs a:hover {
+    color: var(--color-ink);
+  }
+  .title {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-top: 12px;
+    font-size: clamp(2.2rem, 4.4vw, 3.8rem);
+  }
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 24px;
+    margin-top: 14px;
+  }
+  .updated {
+    color: var(--color-muted);
+  }
+  .print {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 0 14px;
+    font-size: 14px;
+    font-weight: 600;
+    background: #fff;
+    border: 1px solid var(--color-line);
+    cursor: pointer;
+    transition: border-color 150ms ease-out;
+  }
+  .print svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .print:hover {
+      border-color: var(--color-ink);
+    }
+  }
+  .print:focus-visible,
+  .toc a:focus-visible,
+  .legal-content :global(a:focus-visible) {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 2px;
+  }
+
+  .legal {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 40px;
+    padding-block: clamp(40px, 5vw, 72px) clamp(64px, 8vw, 112px);
+  }
+  @media (min-width: 1024px) {
+    .legal {
+      grid-template-columns: 270px minmax(0, 1fr);
+      gap: 72px;
+    }
+  }
+
+  /* ---------- Table of contents ---------- */
+  .toc-title {
+    color: var(--color-muted);
+  }
+  .toc > ol {
+    margin-top: 12px;
+    border-top: 1px solid var(--color-line);
+  }
+  .toc a {
+    display: flex;
+    gap: 12px;
+    padding-block: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    border-bottom: 1px solid var(--color-line);
+    transition: color 150ms ease-out;
+  }
+  .toc a span {
+    flex-shrink: 0;
+    color: var(--color-gold-deep);
+  }
+  .toc .sub a {
+    padding-block: 6px;
+    padding-left: 14px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-ink-soft);
+    border-bottom: 0;
+  }
+  .toc .part + .part > a,
+  .toc .part > a {
+    margin-top: 6px;
+    text-transform: uppercase;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+  }
+  .toc .sub {
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--color-line);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .toc a:hover {
+      color: var(--color-gold-deep);
+    }
+  }
+  @media (min-width: 1024px) {
+    .toc {
+      position: sticky;
+      top: 32px;
+      align-self: start;
+      max-height: calc(100svh - 64px);
+      overflow-y: auto;
+      scrollbar-width: thin;
+    }
+  }
+  /* Phones and tablets: the contents above the text; sub-items hidden to keep it short. */
+  @media (max-width: 1023px) {
+    .toc > ol {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+      column-gap: 24px;
+    }
+    .toc .sub {
+      display: none;
+    }
+  }
+
+  /* ---------- Text ---------- */
+  .legal-content {
+    max-width: 780px;
+  }
+  .legal-content :global(section) {
+    scroll-margin-top: 24px;
+  }
+  .legal-content :global(section + section) {
+    margin-top: clamp(36px, 4.5vw, 52px);
+    padding-top: clamp(36px, 4.5vw, 52px);
+    border-top: 1px solid var(--color-line);
+  }
+  /* A part (CGV): a band with its name, its articles follow. */
+  .legal-content :global(.part-head) {
+    scroll-margin-top: 24px;
+    margin-top: clamp(48px, 6vw, 72px);
+    padding: 18px 22px;
+    color: #fff;
+    background: var(--color-ink);
+  }
+  .legal-content :global(.part-head:first-child) {
+    margin-top: 0;
+  }
+  .legal-content :global(.part-head + section) {
+    margin-top: clamp(28px, 3.5vw, 40px);
+    padding-top: 0;
+    border-top: 0;
+  }
+  .legal-content :global(.part-head .kicker) {
+    color: var(--color-gold);
+  }
+  .legal-content :global(.part-head h2) {
+    margin-top: 4px;
+    font-size: clamp(1.5rem, 2.4vw, 2rem);
+    font-weight: 700;
+    font-stretch: 112%;
+    line-height: 1.15;
+  }
+  .legal-content :global(.part-head p:not(.kicker)) {
+    margin-top: 6px;
+    color: rgb(255 255 255 / 0.7);
+  }
+  .legal-content :global(section h2) {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    font-size: clamp(1.3rem, 2vw, 1.65rem);
+    font-weight: 700;
+    font-stretch: 112%;
+    line-height: 1.2;
+  }
+  .legal-content :global(h2 .n) {
+    flex-shrink: 0;
+    color: var(--color-gold-deep);
+  }
+  .legal-content :global(h3) {
+    margin-top: 24px;
+    font-size: 1.08rem;
+    font-weight: 700;
+    font-stretch: 112%;
+  }
+  .legal-content :global(p),
+  .legal-content :global(li) {
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    color: var(--color-ink-soft);
+  }
+  .legal-content :global(p) {
+    margin-top: 14px;
+  }
+  .legal-content :global(strong) {
+    color: var(--color-ink);
+  }
+  .legal-content :global(a) {
+    color: var(--color-ink);
+    text-decoration: underline;
+    text-decoration-color: var(--color-gold);
+    text-underline-offset: 3px;
+  }
+  .legal-content :global(.dots) {
+    margin-top: 12px;
+  }
+  .legal-content :global(.dots li) {
+    position: relative;
+    padding-left: 22px;
+  }
+  .legal-content :global(.dots li + li) {
+    margin-top: 8px;
+  }
+  .legal-content :global(.dots li::before) {
+    content: '';
+    position: absolute;
+    top: 0.72em;
+    left: 2px;
+    width: 7px;
+    height: 7px;
+    background: var(--color-gold);
+  }
+  /* Important clauses and legal texts reproduced as they are. */
+  .legal-content :global(.box) {
+    margin-top: 18px;
+    padding: 18px 22px;
+    background: var(--color-mist);
+    border-left: 3px solid var(--color-gold);
+  }
+  .legal-content :global(.box > :first-child) {
+    margin-top: 0;
+  }
+  .legal-content :global(.box p),
+  .legal-content :global(.box li) {
+    font-size: 1rem;
+  }
+  /* Facts as editorial rows. */
+  .legal-content :global(.facts) {
+    margin-top: 18px;
+    border-top: 1px solid var(--color-line);
+  }
+  .legal-content :global(.facts div) {
+    display: grid;
+    gap: 2px 24px;
+    padding-block: 12px;
+    border-bottom: 1px solid var(--color-line);
+  }
+  @media (min-width: 640px) {
+    .legal-content :global(.facts div) {
+      grid-template-columns: 220px minmax(0, 1fr);
+    }
+  }
+  .legal-content :global(.facts dt) {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-muted);
+  }
+  .legal-content :global(.facts dd) {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    color: var(--color-ink);
+    overflow-wrap: anywhere;
+  }
+
+  /* ---------- Print: the text only ---------- */
+  @media print {
+    :global(.ldl-header),
+    :global(footer),
+    :global([data-pop-chat]),
+    :global([data-cart]),
+    :global([data-to-top]),
+    .toc,
+    .print {
+      display: none !important;
+    }
+    .legal-head {
+      padding: 0 0 12pt;
+      background: none;
+    }
+    .legal {
+      display: block;
+      padding: 12pt 0 0;
+    }
+    .legal-content {
+      max-width: none;
+    }
+    .legal-content :global(p),
+    .legal-content :global(li) {
+      font-size: 10.5pt;
+      line-height: 1.45;
+      color: #000;
+    }
+    .legal-content :global(.box),
+    .legal-content :global(.facts div),
+    .legal-content :global(.dots li) {
+      break-inside: avoid-page;
+    }
+    .legal-content :global(h2),
+    .legal-content :global(h3) {
+      break-after: avoid-page;
+    }
+    .legal-content :global(section + section) {
+      margin-top: 14pt;
+      padding-top: 14pt;
+    }
+    .legal-content :global(.part-head) {
+      margin-top: 22pt;
+      color: #000;
+      background: none;
+      border: 1.5pt solid #000;
+      break-after: avoid-page;
+    }
+    .legal-content :global(.part-head p:not(.kicker)) {
+      color: #333;
+    }
+  }
+</style>

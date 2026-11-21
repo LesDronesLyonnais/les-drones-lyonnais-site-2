@@ -4,11 +4,10 @@
 // pre-production domain, repealed laws). Company facts come from COMPANY / HOST in
 // data/site.ts (public company register); the personal data and cookies sections describe
 // what the site really does today (contact form and accounts stored by us, e-mails sent by
-// Brevo, no audience measurement, no advertising). Static; a table of contents on the side
-// on large screens.
-import BaseLayout from '../layouts/BaseLayout.astro';
+// Brevo, no audience measurement, no advertising). Static; layout in components/legal/
+// LegalPage.astro (shared with the terms).
 import { Image } from 'astro:assets';
-import Square from '../components/ui/Square.astro';
+import LegalPage from '../components/legal/LegalPage.astro';
 import qualiopiLogo from '../assets/brand/qualiopi.png';
 import { COMPANY, HOST, SITE } from '../data/site';
 
@@ -31,311 +30,131 @@ const pad = (i: number) => String(i + 1).padStart(2, '0');
 const num = (id: string) => pad(SECTIONS.findIndex((s) => s.id === id));
 ---
 
-<BaseLayout title="Mentions légales | Les Drones Lyonnais" description="Mentions légales du site Les Drones Lyonnais : éditeur, hébergement, organisme de formation, propriété intellectuelle, données personnelles et cookies." activity="general">
-  <section class="legal-head">
-    <div class="wrap">
-      <nav aria-label="Fil d’Ariane" class="hud-text crumbs">
-        <a href="/">Accueil</a>
-        <span aria-hidden="true">/</span>
-        <span aria-current="page">Mentions légales</span>
-      </nav>
-      <h1 class="display title">
-        <Square color="var(--color-gold)" class="mt-[0.22em] size-[0.3em] shrink-0" />
-        Mentions légales
-      </h1>
-      <p class="updated hud-text">Mise à jour le {UPDATED}</p>
-    </div>
+<LegalPage
+  title="Mentions légales"
+  metaTitle="Mentions légales | Les Drones Lyonnais"
+  description="Mentions légales du site Les Drones Lyonnais : éditeur, hébergement, organisme de formation, propriété intellectuelle, données personnelles et cookies."
+  updated={UPDATED}
+  toc={SECTIONS.map((s, i) => ({ id: s.id, title: s.title, n: pad(i) }))}
+>
+  <section id="editeur" aria-labelledby="editeur-title">
+    <h2 id="editeur-title"><span class="hud-text n">{num('editeur')}</span>Éditeur du site</h2>
+    <p>Le site {SITE.url.replace('https://', '')} est édité par :</p>
+    <dl class="facts">
+      <div><dt>Raison sociale</dt><dd>{COMPANY.legalName}</dd></div>
+      <div><dt>Forme juridique</dt><dd>{COMPANY.form}</dd></div>
+      <div><dt>Capital social</dt><dd>{COMPANY.capital}</dd></div>
+      <div><dt>Siège social</dt><dd>{office}</dd></div>
+      <div><dt>SIREN</dt><dd>{COMPANY.siren}</dd></div>
+      <div><dt>SIRET (siège)</dt><dd>{COMPANY.siret}</dd></div>
+      <div><dt>Immatriculation</dt><dd>{COMPANY.rcs}</dd></div>
+      <div><dt>TVA intracommunautaire</dt><dd>{COMPANY.vat}</dd></div>
+      <div><dt>Code APE</dt><dd>{COMPANY.ape}</dd></div>
+      <div><dt>Adresse de contact</dt><dd>{contactAddress}</dd></div>
+      <div><dt>Téléphone</dt><dd><a href={SITE.phoneHref}>{SITE.phone}</a></dd></div>
+      <div><dt>E-mail</dt><dd><a href={`mailto:${SITE.email}`}>{SITE.email}</a></dd></div>
+    </dl>
   </section>
 
-  <div class="wrap legal">
-    <aside class="toc" aria-label="Sommaire">
-      <p class="hud-text toc-title">Sommaire</p>
-      <ol>
-        {
-          SECTIONS.map((s, i) => (
-            <li>
-              <a href={`#${s.id}`}>
-                <span class="hud-text">{pad(i)}</span>
-                {s.title}
-              </a>
-            </li>
-          ))
-        }
-      </ol>
-    </aside>
+  <section id="publication" aria-labelledby="publication-title">
+    <h2 id="publication-title"><span class="hud-text n">{num('publication')}</span>Directeur de la publication</h2>
+    <p>{COMPANY.director}, gérant de {COMPANY.legalName}.</p>
+  </section>
 
-    <article class="content">
-      <section id="editeur" aria-labelledby="editeur-title">
-        <h2 id="editeur-title"><span class="hud-text n">{num('editeur')}</span>Éditeur du site</h2>
-        <p>Le site {SITE.url.replace('https://', '')} est édité par :</p>
-        <dl class="facts">
-          <div><dt>Raison sociale</dt><dd>{COMPANY.legalName}</dd></div>
-          <div><dt>Forme juridique</dt><dd>{COMPANY.form}</dd></div>
-          <div><dt>Capital social</dt><dd>{COMPANY.capital}</dd></div>
-          <div><dt>Siège social</dt><dd>{office}</dd></div>
-          <div><dt>SIREN</dt><dd>{COMPANY.siren}</dd></div>
-          <div><dt>SIRET (siège)</dt><dd>{COMPANY.siret}</dd></div>
-          <div><dt>Immatriculation</dt><dd>{COMPANY.rcs}</dd></div>
-          <div><dt>TVA intracommunautaire</dt><dd>{COMPANY.vat}</dd></div>
-          <div><dt>Code APE</dt><dd>{COMPANY.ape}</dd></div>
-          <div><dt>Adresse de contact</dt><dd>{contactAddress}</dd></div>
-          <div><dt>Téléphone</dt><dd><a href={SITE.phoneHref}>{SITE.phone}</a></dd></div>
-          <div><dt>E-mail</dt><dd><a href={`mailto:${SITE.email}`}>{SITE.email}</a></dd></div>
-        </dl>
-      </section>
+  <section id="hebergement" aria-labelledby="hebergement-title">
+    <h2 id="hebergement-title"><span class="hud-text n">{num('hebergement')}</span>Hébergement</h2>
+    <dl class="facts">
+      <div><dt>Hébergeur</dt><dd>{HOST.name}</dd></div>
+      <div><dt>Adresse</dt><dd>{HOST.address}</dd></div>
+      <div><dt>Téléphone</dt><dd>{HOST.phone}</dd></div>
+      <div><dt>Site</dt><dd><a href={HOST.url} rel="noopener">{HOST.url.replace('https://', '')}</a></dd></div>
+    </dl>
+    <p>La base de données des comptes clients et des demandes de contact est hébergée par {HOST.name} en Europe de l’Ouest.</p>
+  </section>
 
-      <section id="publication" aria-labelledby="publication-title">
-        <h2 id="publication-title"><span class="hud-text n">{num('publication')}</span>Directeur de la publication</h2>
-        <p>{COMPANY.director}, gérant de {COMPANY.legalName}.</p>
-      </section>
+  <section id="formation" aria-labelledby="formation-title">
+    <h2 id="formation-title"><span class="hud-text n">{num('formation')}</span>Organisme de formation</h2>
+    <p>
+      Déclaration d’activité enregistrée sous le numéro <strong>{COMPANY.training.nda}</strong> auprès du préfet de la région {COMPANY.training.region}. Cet enregistrement ne vaut pas agrément de l’État.
+    </p>
+    {
+      COMPANY.training.qualiopi && (
+        <div class="qualiopi">
+          <Image src={qualiopiLogo} alt="Qualiopi, processus certifié – République française" width={240} densities={[1, 2]} class="qualiopi-logo" />
+          <div>
+            <p class="qualiopi-category">La certification qualité a été délivrée au titre de la catégorie d’action suivante : <strong>{COMPANY.training.qualiopi.category.toUpperCase()}</strong>.</p>
+            <p class="qualiopi-meta">
+              Certificat n° {COMPANY.training.qualiopi.number} délivré par {COMPANY.training.qualiopi.body}, depuis le {COMPANY.training.qualiopi.since}, valable jusqu’au {COMPANY.training.qualiopi.until}.
+            </p>
+          </div>
+        </div>
+      )
+    }
+  </section>
 
-      <section id="hebergement" aria-labelledby="hebergement-title">
-        <h2 id="hebergement-title"><span class="hud-text n">{num('hebergement')}</span>Hébergement</h2>
-        <dl class="facts">
-          <div><dt>Hébergeur</dt><dd>{HOST.name}</dd></div>
-          <div><dt>Adresse</dt><dd>{HOST.address}</dd></div>
-          <div><dt>Téléphone</dt><dd>{HOST.phone}</dd></div>
-          <div><dt>Site</dt><dd><a href={HOST.url} rel="noopener">{HOST.url.replace('https://', '')}</a></dd></div>
-        </dl>
-        <p>La base de données des comptes clients et des demandes de contact est hébergée par {HOST.name} en Europe de l’Ouest.</p>
-      </section>
+  <section id="propriete" aria-labelledby="propriete-title">
+    <h2 id="propriete-title"><span class="hud-text n">{num('propriete')}</span>Propriété intellectuelle</h2>
+    <p>
+      L’ensemble des contenus de ce site (textes, photographies, vidéos, illustrations, logos, la mascotte Pop, la mise en page) est la propriété de {COMPANY.legalName} ou fait l’objet d’une autorisation d’utilisation. Toute reproduction, représentation, modification ou diffusion, totale ou partielle, sans autorisation écrite préalable est interdite et constitue une contrefaçon (articles L.335-2 et suivants du Code de la propriété intellectuelle).
+    </p>
+    <p>
+      Les marques et les photographies des produits présentés dans la boutique et à la location (notamment DJI) appartiennent à leurs titulaires respectifs.
+    </p>
+    <p>
+      Fond de carte de France : contours issus d’IGN Admin Express, via le projet france-geojson (Grégoire David), sous Licence ouverte / Open Licence (Etalab).
+    </p>
+  </section>
 
-      <section id="formation" aria-labelledby="formation-title">
-        <h2 id="formation-title"><span class="hud-text n">{num('formation')}</span>Organisme de formation</h2>
-        <p>
-          Déclaration d’activité enregistrée sous le numéro <strong>{COMPANY.training.nda}</strong> auprès du préfet de la région {COMPANY.training.region}. Cet enregistrement ne vaut pas agrément de l’État.
-        </p>
-        {
-          COMPANY.training.qualiopi && (
-            <div class="qualiopi">
-              <Image src={qualiopiLogo} alt="Qualiopi, processus certifié – République française" width={240} densities={[1, 2]} class="qualiopi-logo" />
-              <div>
-                <p class="qualiopi-category">La certification qualité a été délivrée au titre de la catégorie d’action suivante : <strong>{COMPANY.training.qualiopi.category.toUpperCase()}</strong>.</p>
-                <p class="qualiopi-meta">
-                  Certificat n° {COMPANY.training.qualiopi.number} délivré par {COMPANY.training.qualiopi.body}, depuis le {COMPANY.training.qualiopi.since}, valable jusqu’au {COMPANY.training.qualiopi.until}.
-                </p>
-              </div>
-            </div>
-          )
-        }
-      </section>
+  <section id="donnees" aria-labelledby="donnees-title">
+    <h2 id="donnees-title"><span class="hud-text n">{num('donnees')}</span>Données personnelles</h2>
+    <p>
+      {COMPANY.legalName} est responsable des traitements de données personnelles réalisés sur ce site, conformément au Règlement général sur la protection des données (RGPD, règlement (UE) 2016/679) et à la loi « Informatique et Libertés » du 6 janvier 1978 modifiée.
+    </p>
+    <h3>Quelles données, pour quoi faire</h3>
+    <ul class="dots">
+      <li><strong>Formulaire de contact</strong> : nom, adresse e-mail, téléphone si vous le donnez, sujet et message. Ils servent à répondre à votre demande (devis, commande, réservation, formation).</li>
+      <li><strong>Espace client</strong> : adresse e-mail, nom, société et téléphone. Ils servent à gérer votre compte, vos commandes, vos missions, vos factures et vos livrables.</li>
+      <li><strong>E-mails</strong> : les e-mails du site (accusé de réception, réponse, mot de passe oublié) sont envoyés par notre prestataire Brevo (Sendinblue SAS, France).</li>
+    </ul>
+    <p>
+      Ces données sont réservées à l’équipe {COMPANY.legalName} et à ses prestataires techniques (hébergement, envoi d’e-mails). Elles ne sont ni vendues ni cédées. Elles sont conservées le temps nécessaire au traitement de votre demande et à la relation commerciale, puis supprimées ou archivées pendant les durées imposées par la loi (comptabilité, facturation).
+    </p>
+    <h3>Vos droits</h3>
+    <p>
+      Vous disposez d’un droit d’accès, de rectification, d’effacement, de limitation, d’opposition et de portabilité de vos données. Pour l’exercer, écrivez-nous à <a href={`mailto:${SITE.email}`}>{SITE.email}</a>. Si vous estimez, après nous avoir contactés, que vos droits ne sont pas respectés, vous pouvez adresser une réclamation à la CNIL (<a href="https://www.cnil.fr" rel="noopener">cnil.fr</a>).
+    </p>
+  </section>
 
-      <section id="propriete" aria-labelledby="propriete-title">
-        <h2 id="propriete-title"><span class="hud-text n">{num('propriete')}</span>Propriété intellectuelle</h2>
-        <p>
-          L’ensemble des contenus de ce site (textes, photographies, vidéos, illustrations, logos, la mascotte Pop, la mise en page) est la propriété de {COMPANY.legalName} ou fait l’objet d’une autorisation d’utilisation. Toute reproduction, représentation, modification ou diffusion, totale ou partielle, sans autorisation écrite préalable est interdite et constitue une contrefaçon (articles L.335-2 et suivants du Code de la propriété intellectuelle).
-        </p>
-        <p>
-          Les marques et les photographies des produits présentés dans la boutique et à la location (notamment DJI) appartiennent à leurs titulaires respectifs.
-        </p>
-        <p>
-          Fond de carte de France : contours issus d’IGN Admin Express, via le projet france-geojson (Grégoire David), sous Licence ouverte / Open Licence (Etalab).
-        </p>
-      </section>
+  <section id="cookies" aria-labelledby="cookies-title">
+    <h2 id="cookies-title"><span class="hud-text n">{num('cookies')}</span>Cookies</h2>
+    <p>
+      Ce site n’utilise <strong>ni cookie publicitaire, ni outil de mesure d’audience</strong>. Il n’utilise que ce qui est nécessaire à son fonctionnement, sans consentement préalable :
+    </p>
+    <ul class="dots">
+      <li>un cookie de session, uniquement si vous vous connectez à votre espace client ;</li>
+      <li>le stockage local de votre navigateur, pour garder votre panier et l’onglet choisi sur la page d’accueil ;</li>
+      <li>des cookies techniques de sécurité déposés par notre hébergeur (protection contre les robots).</li>
+    </ul>
+    <p>Les contenus de tiers intégrés à certaines pages (galerie et vidéos de timelapse Tikee) peuvent déposer leurs propres cookies, régis par les conditions de ces services.</p>
+  </section>
 
-      <section id="donnees" aria-labelledby="donnees-title">
-        <h2 id="donnees-title"><span class="hud-text n">{num('donnees')}</span>Données personnelles</h2>
-        <p>
-          {COMPANY.legalName} est responsable des traitements de données personnelles réalisés sur ce site, conformément au Règlement général sur la protection des données (RGPD, règlement (UE) 2016/679) et à la loi « Informatique et Libertés » du 6 janvier 1978 modifiée.
-        </p>
-        <h3>Quelles données, pour quoi faire</h3>
-        <ul class="dots">
-          <li><strong>Formulaire de contact</strong> : nom, adresse e-mail, téléphone si vous le donnez, sujet et message. Ils servent à répondre à votre demande (devis, commande, réservation, formation).</li>
-          <li><strong>Espace client</strong> : adresse e-mail, nom, société et téléphone. Ils servent à gérer votre compte, vos commandes, vos missions, vos factures et vos livrables.</li>
-          <li><strong>E-mails</strong> : les e-mails du site (accusé de réception, réponse, mot de passe oublié) sont envoyés par notre prestataire Brevo (Sendinblue SAS, France).</li>
-        </ul>
-        <p>
-          Ces données sont réservées à l’équipe {COMPANY.legalName} et à ses prestataires techniques (hébergement, envoi d’e-mails). Elles ne sont ni vendues ni cédées. Elles sont conservées le temps nécessaire au traitement de votre demande et à la relation commerciale, puis supprimées ou archivées pendant les durées imposées par la loi (comptabilité, facturation).
-        </p>
-        <h3>Vos droits</h3>
-        <p>
-          Vous disposez d’un droit d’accès, de rectification, d’effacement, de limitation, d’opposition et de portabilité de vos données. Pour l’exercer, écrivez-nous à <a href={`mailto:${SITE.email}`}>{SITE.email}</a>. Si vous estimez, après nous avoir contactés, que vos droits ne sont pas respectés, vous pouvez adresser une réclamation à la CNIL (<a href="https://www.cnil.fr" rel="noopener">cnil.fr</a>).
-        </p>
-      </section>
+  <section id="responsabilite" aria-labelledby="responsabilite-title">
+    <h2 id="responsabilite-title"><span class="hud-text n">{num('responsabilite')}</span>Responsabilité et liens</h2>
+    <p>
+      {COMPANY.legalName} veille à l’exactitude des informations publiées sur ce site, notamment les prix, la disponibilité du matériel et la réglementation des drones, mais ne peut garantir qu’elles sont complètes ou à jour en permanence. Les conditions applicables à une commande, une location, une prestation ou une formation sont celles précisées dans nos <a href="/conditions-generales/">conditions générales</a> et dans votre devis.
+    </p>
+    <p>
+      Le site contient des liens vers d’autres sites (fabricants, administrations, réseaux sociaux). {COMPANY.legalName} n’en contrôle pas le contenu et ne saurait en être responsable.
+    </p>
+  </section>
 
-      <section id="cookies" aria-labelledby="cookies-title">
-        <h2 id="cookies-title"><span class="hud-text n">{num('cookies')}</span>Cookies</h2>
-        <p>
-          Ce site n’utilise <strong>ni cookie publicitaire, ni outil de mesure d’audience</strong>. Il n’utilise que ce qui est nécessaire à son fonctionnement, sans consentement préalable :
-        </p>
-        <ul class="dots">
-          <li>un cookie de session, uniquement si vous vous connectez à votre espace client ;</li>
-          <li>le stockage local de votre navigateur, pour garder votre panier et l’onglet choisi sur la page d’accueil ;</li>
-          <li>des cookies techniques de sécurité déposés par notre hébergeur (protection contre les robots).</li>
-        </ul>
-        <p>Les contenus de tiers intégrés à certaines pages (galerie et vidéos de timelapse Tikee) peuvent déposer leurs propres cookies, régis par les conditions de ces services.</p>
-      </section>
-
-      <section id="responsabilite" aria-labelledby="responsabilite-title">
-        <h2 id="responsabilite-title"><span class="hud-text n">{num('responsabilite')}</span>Responsabilité et liens</h2>
-        <p>
-          {COMPANY.legalName} veille à l’exactitude des informations publiées sur ce site, notamment les prix, la disponibilité du matériel et la réglementation des drones, mais ne peut garantir qu’elles sont complètes ou à jour en permanence. Les conditions applicables à une commande, une location, une prestation ou une formation sont celles précisées dans nos conditions générales et dans votre devis.
-        </p>
-        <p>
-          Le site contient des liens vers d’autres sites (fabricants, administrations, réseaux sociaux). {COMPANY.legalName} n’en contrôle pas le contenu et ne saurait en être responsable.
-        </p>
-      </section>
-
-      <section id="droit" aria-labelledby="droit-title">
-        <h2 id="droit-title"><span class="hud-text n">{num('droit')}</span>Droit applicable</h2>
-        <p>Les présentes mentions légales sont régies par le droit français. Pour toute question, contactez-nous à <a href={`mailto:${SITE.email}`}>{SITE.email}</a> ou au <a href={SITE.phoneHref}>{SITE.phone}</a>.</p>
-      </section>
-    </article>
-  </div>
-</BaseLayout>
+  <section id="droit" aria-labelledby="droit-title">
+    <h2 id="droit-title"><span class="hud-text n">{num('droit')}</span>Droit applicable</h2>
+    <p>Les présentes mentions légales sont régies par le droit français. Pour toute question, contactez-nous à <a href={`mailto:${SITE.email}`}>{SITE.email}</a> ou au <a href={SITE.phoneHref}>{SITE.phone}</a>.</p>
+  </section>
+</LegalPage>
 
 <style>
-  .legal-head {
-    padding-block: clamp(32px, 4vw, 56px) clamp(28px, 3vw, 44px);
-    border-bottom: 1px solid var(--color-line);
-    background: var(--color-mist);
-  }
-  .crumbs {
-    display: flex;
-    gap: 10px;
-    color: var(--color-muted);
-  }
-  .crumbs a:hover {
-    color: var(--color-ink);
-  }
-  .title {
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-    margin-top: 12px;
-    font-size: clamp(2.2rem, 4.4vw, 3.8rem);
-  }
-  .updated {
-    margin-top: 14px;
-    color: var(--color-muted);
-  }
-
-  .legal {
-    display: grid;
-    gap: 40px;
-    padding-block: clamp(40px, 5vw, 72px) clamp(64px, 8vw, 112px);
-  }
-  @media (min-width: 1024px) {
-    .legal {
-      grid-template-columns: 260px minmax(0, 1fr);
-      gap: 72px;
-    }
-  }
-
-  /* ---------- Table of contents ---------- */
-  .toc-title {
-    color: var(--color-muted);
-  }
-  .toc ol {
-    margin-top: 12px;
-    border-top: 1px solid var(--color-line);
-  }
-  .toc a {
-    display: flex;
-    gap: 12px;
-    padding-block: 10px;
-    font-size: 15px;
-    font-weight: 600;
-    border-bottom: 1px solid var(--color-line);
-    transition: color 150ms ease-out;
-  }
-  .toc a span {
-    color: var(--color-gold-deep);
-  }
-  @media (hover: hover) and (pointer: fine) {
-    .toc a:hover {
-      color: var(--color-gold-deep);
-    }
-  }
-  .toc a:focus-visible,
-  .content a:focus-visible {
-    outline: 2px solid var(--color-gold);
-    outline-offset: 2px;
-  }
-  @media (min-width: 1024px) {
-    .toc {
-      position: sticky;
-      top: 32px;
-      align-self: start;
-    }
-  }
-  /* Phones and tablets: the table of contents in two columns, above the text. */
-  @media (max-width: 1023px) {
-    .toc ol {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
-      column-gap: 24px;
-    }
-  }
-
-  /* ---------- Text ---------- */
-  .content {
-    max-width: 760px;
-  }
-  .content section {
-    scroll-margin-top: 24px;
-  }
-  .content section + section {
-    margin-top: clamp(40px, 5vw, 56px);
-    padding-top: clamp(40px, 5vw, 56px);
-    border-top: 1px solid var(--color-line);
-  }
-  .content h2 {
-    display: flex;
-    align-items: baseline;
-    gap: 14px;
-    font-size: clamp(1.4rem, 2.2vw, 1.8rem);
-    font-weight: 700;
-    font-stretch: 112%;
-    line-height: 1.2;
-  }
-  .content h2 .n {
-    color: var(--color-gold-deep);
-  }
-  .content h3 {
-    margin-top: 26px;
-    font-size: 1.1rem;
-    font-weight: 700;
-    font-stretch: 112%;
-  }
-  .content p,
-  .content li {
-    font-size: 1.0625rem;
-    line-height: 1.7;
-    color: var(--color-ink-soft);
-  }
-  .content p {
-    margin-top: 14px;
-  }
-  .content strong {
-    color: var(--color-ink);
-  }
-  .content a {
-    color: var(--color-ink);
-    text-decoration: underline;
-    text-decoration-color: var(--color-gold);
-    text-underline-offset: 3px;
-  }
-  .dots {
-    margin-top: 12px;
-  }
-  .dots li {
-    position: relative;
-    padding-left: 22px;
-  }
-  .dots li + li {
-    margin-top: 8px;
-  }
-  .dots li::before {
-    content: '';
-    position: absolute;
-    top: 0.72em;
-    left: 2px;
-    width: 7px;
-    height: 7px;
-    background: var(--color-gold);
-  }
-
   /* Qualiopi: the logo with the certified category under or beside it (charter of the mark). */
   .qualiopi {
     display: grid;
@@ -355,40 +174,12 @@ const num = (id: string) => pad(SECTIONS.findIndex((s) => s.id === id));
     max-width: 100%;
     height: auto;
   }
-  .content .qualiopi p {
+  .qualiopi p {
     margin-top: 0;
   }
-  .content .qualiopi .qualiopi-meta {
+  .qualiopi .qualiopi-meta {
     margin-top: 8px;
     font-size: 15px;
     color: var(--color-muted);
-  }
-
-  /* The company facts as editorial rows. */
-  .facts {
-    margin-top: 18px;
-    border-top: 1px solid var(--color-line);
-  }
-  .facts div {
-    display: grid;
-    gap: 2px 24px;
-    padding-block: 12px;
-    border-bottom: 1px solid var(--color-line);
-  }
-  @media (min-width: 640px) {
-    .facts div {
-      grid-template-columns: 220px minmax(0, 1fr);
-    }
-  }
-  .facts dt {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--color-muted);
-  }
-  .facts dd {
-    font-size: 1.0625rem;
-    font-weight: 600;
-    color: var(--color-ink);
-    overflow-wrap: anywhere;
   }
 </style>

@@ -321,7 +321,19 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   on /formations-drone-a-lyon/; a reminder is scheduled for 2027-02-04). Sections: publisher, publication, host (Cloudflare), training body, IP and
   credits (IGN map), personal data (contact form, accounts, Brevo), cookies (session cookie
   only when signed in, local storage, host's security cookies; no analytics), liability,
-  law. Table of contents sticky on large screens.
+  law. Layout: components/legal/LegalPage.astro.
+
+- /conditions-generales/ (2026-11-21, client: "cover us as much as possible on trainings,
+  services, shop and rental"; rental: our insurance covers nothing, breakage / theft / loss
+  are the renter's, who must be on AlphaTango, hold an RC Pro and check the rules himself).
+  Content in src/data/cgv.ts (articles as HTML, numbered Art. 1–52 across 5 parts: common,
+  shop, rental, services, trainings; then annex 1 = legal guarantee box D.211-2, annex 2 =
+  withdrawal form R.221-1 — both typed from memory and secondary sources, Légifrance was
+  behind a robot check: to verify word for word). Commercial figures in TERMS and the
+  cancellation lists (proposals to validate); MEDIATOR is null until the client picks one
+  (mandatory for consumers). Liability limits never apply to consumers where the law forbids
+  it. Both legal pages use components/legal/LegalPage.astro (head, sticky contents, print
+  button and print styles). To be reviewed by a lawyer.
 
 Next: Stripe checkout (from the cart) and booking
 Worker, legal pages, redirect plan.

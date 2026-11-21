@@ -1,0 +1,184 @@
+---
+// Conditions générales (CGV) of the four activities, written on 2026-11-21 (client: "cover
+// us as much as possible"). Content in data/cgv.ts (articles as HTML, commercial terms in
+// TERMS, mediator in MEDIATOR); layout in components/legal/LegalPage.astro. Parts are
+// numbered articles in a row (Art. 1…), then two annexes required by law: the legal
+// guarantee box (D.211-2) and the withdrawal form (R.221-1).
+import LegalPage, { type TocEntry } from '../components/legal/LegalPage.astro';
+import { CGV_PARTS, LEGAL_GUARANTEE, WITHDRAWAL_FORM } from '../data/cgv';
+
+const UPDATED = '21 novembre 2026';
+let n = 0;
+const parts = CGV_PARTS.map((p) => ({ ...p, articles: p.articles.map((a) => ({ ...a, n: `Art. ${++n}` })) }));
+const toc: TocEntry[] = [
+  ...parts.map((p) => ({ id: p.id, title: p.title, items: p.articles.map((a) => ({ id: a.id, title: a.title, n: a.n })) })),
+  { id: 'annexes', title: 'Annexes', items: [
+    { id: 'garantie-legale', title: 'Garantie légale de conformité', n: 'A1' },
+    { id: 'formulaire', title: 'Formulaire de rétractation', n: 'A2' },
+  ] },
+];
+const SHORTCUTS = [
+  { id: 'boutique', label: 'J’achète du matériel' },
+  { id: 'location', label: 'Je loue du matériel' },
+  { id: 'prestations', label: 'Je commande une prestation' },
+  { id: 'formations', label: 'Je m’inscris à une formation' },
+];
+---
+
+<LegalPage
+  title="Conditions générales"
+  metaTitle="Conditions générales de vente | Les Drones Lyonnais"
+  description="Conditions générales de vente des Drones Lyonnais : boutique, location de matériel, prestations par drone et formations."
+  updated={UPDATED}
+  toc={toc}
+>
+  <div slot="intro" class="shortcuts">
+    <p class="hud-text">Accès direct</p>
+    <ul>
+      {SHORTCUTS.map((s) => <li><a href={`#${s.id}`}>{s.label} <span aria-hidden="true">→</span></a></li>)}
+    </ul>
+    <p class="note">Les dispositions communes (partie 1) s’appliquent à toutes nos activités, en plus de la partie qui vous concerne.</p>
+  </div>
+
+  <div class="cgv">
+    {
+      parts.map((p) => (
+        <>
+          <header class="part-head" id={p.id}>
+            <p class="kicker hud-text">{p.kicker}</p>
+            <h2>{p.title}</h2>
+            <p>{p.intro}</p>
+          </header>
+          {p.articles.map((a) => (
+            <section id={a.id} aria-labelledby={`${a.id}-title`}>
+              <h3 id={`${a.id}-title`} class="art-title">
+                <span class="hud-text n">{a.n}</span>
+                {a.title}
+              </h3>
+              <Fragment set:html={a.html} />
+            </section>
+          ))}
+        </>
+      ))
+    }
+
+    <header class="part-head" id="annexes">
+      <p class="kicker hud-text">Annexes</p>
+      <h2>Textes légaux</h2>
+      <p>Reproduits tels que la loi l’impose.</p>
+    </header>
+    <section id="garantie-legale" aria-labelledby="garantie-legale-title">
+      <h3 id="garantie-legale-title" class="art-title"><span class="hud-text n">A1</span>Garantie légale de conformité et garantie des vices cachés</h3>
+      <div class="box legal-box">
+        {LEGAL_GUARANTEE.map((p) => <p set:html={p} />)}
+      </div>
+    </section>
+    <section id="formulaire" aria-labelledby="formulaire-title">
+      <h3 id="formulaire-title" class="art-title"><span class="hud-text n">A2</span>Formulaire de rétractation</h3>
+      <p>Veuillez compléter et renvoyer le présent formulaire uniquement si vous souhaitez vous rétracter du contrat.</p>
+      <div class="form-sheet">
+        <p><strong>{WITHDRAWAL_FORM.to}</strong></p>
+        {WITHDRAWAL_FORM.lines.map((l) => <p class="line">{l}</p>)}
+        <p class="form-note">{WITHDRAWAL_FORM.note}</p>
+      </div>
+    </section>
+  </div>
+</LegalPage>
+
+<style>
+  /* Shortcuts by activity, in the head. */
+  .shortcuts {
+    margin-top: 24px;
+  }
+  .shortcuts .hud-text {
+    color: var(--color-muted);
+  }
+  .shortcuts ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .shortcuts a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 0 16px;
+    font-size: 15px;
+    font-weight: 600;
+    background: #fff;
+    border: 1px solid var(--color-line);
+    transition: border-color 150ms ease-out;
+  }
+  .shortcuts a span {
+    color: var(--color-gold-deep);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .shortcuts a:hover {
+      border-color: var(--color-ink);
+    }
+  }
+  .shortcuts a:focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 2px;
+  }
+  .shortcuts .note {
+    margin-top: 12px;
+    max-width: 70ch;
+    font-size: 15px;
+    color: var(--color-ink-soft);
+  }
+
+  /* Article titles (h3 under the part's h2). */
+  .cgv .art-title {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-top: 0;
+    font-size: clamp(1.2rem, 1.8vw, 1.5rem);
+    font-weight: 700;
+    font-stretch: 112%;
+    line-height: 1.25;
+  }
+  .cgv .art-title .n {
+    flex-shrink: 0;
+    min-width: 3.6em;
+    color: var(--color-gold-deep);
+  }
+  .cgv .legal-box p {
+    margin-top: 10px;
+  }
+  .cgv .legal-box p:first-child {
+    margin-top: 0;
+  }
+
+  /* The withdrawal form, as a sheet to print. */
+  .form-sheet {
+    margin-top: 18px;
+    padding: 24px;
+    border: 1px dashed var(--color-ink-soft);
+    background: #fff;
+  }
+  .form-sheet p {
+    margin-top: 0;
+  }
+  .form-sheet .line {
+    margin-top: 18px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--color-line);
+  }
+  .form-sheet .form-note {
+    margin-top: 14px;
+    font-size: 14px;
+    color: var(--color-muted);
+  }
+  @media print {
+    .shortcuts {
+      display: none;
+    }
+    #formulaire {
+      break-before: page;
+    }
+  }
+</style>
