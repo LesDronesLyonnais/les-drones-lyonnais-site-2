@@ -163,6 +163,8 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   product joins its family by its name, the rest falls into sensors / other gear. Photos in
   src/assets/shop/ (real photos: current site's media library and DJI press/sample images;
   dji.com serves its US site here, without the Mavic 4 Pro / Mini 5 Pro / Neo 2 pages).
+  A "back to top" button (ui/BackToTop.astro, `after` = first screen selector; black square just
+  left of Pop's button, whose empty box no longer catches clicks) shows once the showcase is gone.
   ShopHero (search + ShopMenu + the Octobre Rose band, data/campaign.ts) is no longer used by
   /boutique/: for a seasonal campaign, bring its band back into ShopShowcase.
 - `/location-drone-et-camera/`: RentalHero = search + category tiles + featured packs.

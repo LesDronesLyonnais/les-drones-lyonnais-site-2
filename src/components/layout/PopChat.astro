@@ -62,6 +62,12 @@ const { context } = Astro.props;
     flex-direction: column;
     align-items: flex-end;
     gap: 10px;
+    /* The box is as wide as the speech bubble: its empty part must not catch clicks
+       meant for what is beside Pop (the "back to top" button). */
+    pointer-events: none;
+  }
+  .pop-chat > * {
+    pointer-events: auto;
   }
   .launcher {
     position: relative;

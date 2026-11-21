@@ -8,6 +8,7 @@
 //    accessories made for it (data/shop.ts). Sensors close the professional use.
 // 4. Piloting, storage and field gear, then the full catalogue with its filters, in the
 //    same order (family by family), Pop's tip and the bridge to rental.
+// A "back to top" button shows once the showcase has scrolled away (client, 2026-11-21).
 import BaseLayout from '../layouts/BaseLayout.astro';
 import JsonLd from '../components/seo/JsonLd.astro';
 import { Image } from 'astro:assets';
@@ -18,6 +19,7 @@ import ShopUses from '../components/shop/ShopUses.astro';
 import FamilyBlock from '../components/shop/FamilyBlock.astro';
 import ProductCard from '../components/shop/ProductCard.astro';
 import PopTip from '../components/ui/PopTip.astro';
+import BackToTop from '../components/ui/BackToTop.astro';
 import ProductGrid from '../components/shop/ProductGrid.astro';
 import ShopBridge from '../components/shop/ShopBridge.astro';
 import { MENU_TILES, SHOP_FILTERS, forSale, productUrl } from '../data/catalog';
@@ -137,6 +139,7 @@ const groups = USAGES.map((u, i) => ({ ...u, n: i + 1, families: FAMILIES.filter
     </PopTip>
   </div>
   <ShopBridge mode="vente" />
+  <BackToTop after="[data-showcase]" />
 </BaseLayout>
 
 <style>

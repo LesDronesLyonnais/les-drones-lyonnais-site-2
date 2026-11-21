@@ -1,0 +1,112 @@
+---
+// "Back to top" button for long pages (client request for /boutique/, 2026-11-21): a black
+// square with an arrow, bottom right, just left of Pop's round button (so Pop's speech
+// bubble, above it, stays clear). It shows once the first screen has scrolled away: the
+// element named by `after`, or one screen height. Click: smooth scroll to the top (instant
+// under reduced motion), focus on the page's title. Without JavaScript it is always shown
+// and "#top" still takes you to the top of the page.
+interface Props {
+  /** CSS selector of the first screen: the button shows once it is out of view. */
+  after?: string;
+}
+const { after } = Astro.props;
+---
+
+<a href="#top" class="to-top" data-to-top data-after={after} aria-label="Remonter en haut de la page">
+  <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 16V4.5M4.5 10 10 4.5l5.5 5.5"></path></svg>
+</a>
+
+<style>
+  .to-top {
+    position: fixed;
+    /* Pop's button: 64px at clamp(14px, 2.5vw, 28px) from the corner. */
+    right: calc(clamp(14px, 2.5vw, 28px) + 64px + 12px);
+    bottom: calc(clamp(14px, 2.5vw, 28px) + 8px);
+    z-index: 55;
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    color: #fff;
+    background: var(--color-ink);
+    box-shadow: 0 10px 24px -12px rgb(0 0 0 / 0.5);
+    transition:
+      opacity 250ms ease,
+      transform 300ms var(--ease-out-strong),
+      visibility 0s linear 0s,
+      background-color 150ms ease-out,
+      color 150ms ease-out;
+  }
+  .to-top svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: square;
+  }
+  /* With JavaScript: hidden (and out of the tab order) until the first screen is gone. */
+  :global(html.js) .to-top:not([data-show]) {
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(12px);
+    pointer-events: none;
+    transition:
+      opacity 200ms ease,
+      transform 200ms ease,
+      visibility 0s linear 200ms;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .to-top:hover {
+      color: var(--color-ink);
+      background: var(--color-gold);
+    }
+    .to-top:hover svg {
+      transform: translateY(-2px);
+    }
+  }
+  .to-top svg {
+    transition: transform 200ms var(--ease-out-strong);
+  }
+  .to-top:focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 3px;
+  }
+  /* The title only receives focus from this button: no ring around it. */
+  :global(h1[tabindex='-1']:focus) {
+    outline: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .to-top,
+    .to-top svg,
+    :global(html.js) .to-top:not([data-show]) {
+      transform: none;
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLAnchorElement>('[data-to-top]').forEach((btn) => {
+    const show = (on: boolean) => btn.toggleAttribute('data-show', on);
+    const first = btn.dataset.after ? document.querySelector(btn.dataset.after) : null;
+    if (first) {
+      new IntersectionObserver(([entry]) => show(!entry.isIntersecting)).observe(first);
+    } else {
+      const check = () => show(scrollY > innerHeight);
+      addEventListener('scroll', check, { passive: true });
+      check();
+    }
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
+      // Keyboard and screen reader users land on the page's title, not on the button.
+      const title = document.querySelector<HTMLElement>('h1');
+      if (title) {
+        if (!title.hasAttribute('tabindex')) title.setAttribute('tabindex', '-1');
+        title.focus({ preventScroll: true });
+      }
+    });
+  });
+</script>
