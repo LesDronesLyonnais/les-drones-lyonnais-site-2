@@ -1,0 +1,61 @@
+---
+// Point cloud under the mouse (lib/point-cloud.ts) behind a white section: put it as the
+// FIRST child of a section with `relative isolate`. All the layers of a page share one grid,
+// so the mesh runs on from one white section into the next; it fades out where a section
+// meets a dark one. Colours: the formation paths (green, gold when the artistic path is
+// chosen). Mouse only, nothing under reduced motion (the layer stays hidden).
+---
+
+<div class="cloud-layer" aria-hidden="true" data-cloud-layer><canvas></canvas></div>
+
+<style>
+  :global(:root) {
+    --cloud: var(--color-formations);
+  }
+  :global(html[data-famille='artistique']) {
+    --cloud: var(--color-gold-deep);
+  }
+  /* Behind the section's content, above its background; clipped to the section. */
+  .cloud-layer {
+    display: none;
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    clip-path: inset(0);
+  }
+  .cloud-layer:global(.is-on) {
+    display: block;
+  }
+  /* One screen tall, it sticks to the screen while the section scrolls by. */
+  canvas {
+    position: sticky;
+    top: 0;
+    display: block;
+    width: 100%;
+    height: 100vh;
+  }
+</style>
+
+<script>
+  import { pointClouds } from '../../lib/point-cloud';
+
+  const layers = [...document.querySelectorAll<HTMLElement>('[data-cloud-layer]')];
+  if (layers.length && matchMedia('(hover: hover) and (pointer: fine)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const root = document.documentElement;
+    const clouds = pointClouds(layers, { colour: () => getComputedStyle(root).getPropertyValue('--cloud').trim() || '#296321' });
+    // A scan line passes once over the first white section, when it shows up.
+    const first = layers[0].parentElement;
+    if (clouds && first) {
+      const io = new IntersectionObserver(
+        ([e]) => {
+          if (!e.isIntersecting) return;
+          io.disconnect();
+          setTimeout(() => clouds.sweep(0), 300);
+        },
+        { threshold: 0.35 },
+      );
+      io.observe(first);
+    }
+  }
+</script>

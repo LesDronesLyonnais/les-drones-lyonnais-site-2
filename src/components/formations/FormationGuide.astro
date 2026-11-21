@@ -10,16 +10,16 @@ import cats from '../../assets/pop/permis-cats.webp';
 import formateur from '../../assets/pop/formateur.webp';
 import qualiopiLogo from '../../assets/brand/qualiopi.png';
 import { COMPANY } from '../../data/site';
+import PointCloudLayer from '../ui/PointCloudLayer.astro';
 
 const POP = { open: bapd, specifique: cats, specialisation: formateur };
 const levels = Object.entries(LEVEL_GUIDE) as [FormationLevel, (typeof LEVEL_GUIDE)[FormationLevel]][];
 const qualiopi = COMPANY.training.qualiopi;
 ---
 
-<section class="guide section-pad bg-paper" aria-labelledby="guide-title" data-guide>
-  <!-- Point cloud under the mouse (lib/point-cloud.ts), behind the content. -->
-  <canvas class="cloud" aria-hidden="true" data-cloud></canvas>
-  <div class="wrap relative">
+<section class="guide section-pad bg-paper relative isolate" aria-labelledby="guide-title">
+  <PointCloudLayer />
+  <div class="wrap">
     <div class="head" data-reveal>
       <p class="kicker hud-text">Comment ça marche</p>
       <h2 id="guide-title" class="display text-[clamp(2rem,3.6vw,3rem)]">Par où commencer ?</h2>
@@ -64,21 +64,6 @@ const qualiopi = COMPANY.training.qualiopi;
 </section>
 
 <style>
-  /* The point cloud takes the colour of the path chosen in the hero. */
-  .guide {
-    --cloud: var(--color-formations);
-    position: relative;
-  }
-  :global(html[data-famille='artistique']) .guide {
-    --cloud: var(--color-gold-deep);
-  }
-  .cloud {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-  }
   .kicker {
     text-transform: uppercase;
     color: var(--color-formations);
@@ -240,29 +225,3 @@ const qualiopi = COMPANY.training.qualiopi;
     outline-offset: 3px;
   }
 </style>
-
-<script>
-  import { pointCloud } from '../../lib/point-cloud';
-
-  // Mouse only, never under reduced motion; a scan line passes once when the section shows up.
-  const guide = document.querySelector<HTMLElement>('[data-guide]');
-  const canvas = guide?.querySelector<HTMLCanvasElement>('[data-cloud]');
-  if (guide && canvas && matchMedia('(hover: hover) and (pointer: fine)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    const cloud = pointCloud(guide, canvas, {
-      colour: () => getComputedStyle(guide).getPropertyValue('--cloud'),
-      rest: '#000000',
-      target: '#000000',
-    });
-    if (cloud) {
-      const io = new IntersectionObserver(
-        ([e]) => {
-          if (!e.isIntersecting) return;
-          io.disconnect();
-          setTimeout(() => cloud.sweep(), 300);
-        },
-        { threshold: 0.35 },
-      );
-      io.observe(guide);
-    }
-  }
-</script>

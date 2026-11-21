@@ -8,6 +8,7 @@ import Button from '../ui/Button.astro';
 import { FORMATION_FAMILIES, LEVEL_GUIDE, formationsOf, type FormationFamily } from '../../data/formations';
 import { ACTIVITIES, SITE } from '../../data/site';
 import { servicePhoto } from '../../lib/service-photo';
+import PointCloudLayer from '../ui/PointCloudLayer.astro';
 
 interface Props {
   family: FormationFamily;
@@ -24,7 +25,8 @@ const groups = [
 ];
 ---
 
-<section id={family} aria-labelledby={`${family}-title`} class:list={['formations section-pad scroll-mt-16', dark ? 'is-dark bg-ink text-white' : 'bg-paper']}>
+<section id={family} aria-labelledby={`${family}-title`} class:list={['formations section-pad scroll-mt-16', dark ? 'is-dark bg-ink text-white' : 'bg-paper relative isolate']}>
+  {!dark && <PointCloudLayer />}
   <div class="wrap">
     <SectionHeader id={`${family}-title`} title={info.title} color={ACTIVITIES.formations.color} dark={dark}>
       <p class:list={['font-semibold', dark ? 'text-white' : 'text-ink']}>{info.tagline}, {info.certification}</p>

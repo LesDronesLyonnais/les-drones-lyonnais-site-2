@@ -8,6 +8,7 @@
 import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 import SectionHeader from '../ui/SectionHeader.astro';
+import PointCloudLayer from '../ui/PointCloudLayer.astro';
 import { METHOD, type MethodStep } from '../../data/services';
 
 interface Props {
@@ -16,12 +17,15 @@ interface Props {
   steps?: MethodStep[];
   /** Word of the progress counter (« Mission · Étape 03 / 05 »). */
   label?: string;
+  /** Point cloud under the mouse behind the section (ui/PointCloudLayer.astro). */
+  cloud?: boolean;
 }
 const {
   title = 'Notre méthode, de la demande à la livraison',
   intro = 'Chaque mission suit les mêmes cinq étapes, de l’analyse de votre besoin à la remise des livrables.',
   steps = METHOD,
   label = 'Mission',
+  cloud = false,
 } = Astro.props;
 
 const poses = import.meta.glob<{ default: ImageMetadata }>('../../assets/pop/*.webp', { eager: true });
@@ -49,7 +53,8 @@ const path = points
 const waypoints = points.slice(1, -1);
 ---
 
-<section id="methode" aria-labelledby="method-title" class="method scroll-mt-16 bg-paper" style={{ '--n': n }} data-method>
+<section id="methode" aria-labelledby="method-title" class:list={['method scroll-mt-16 bg-paper', cloud && 'isolate']} style={{ '--n': n }} data-method>
+  {cloud && <PointCloudLayer />}
   <div class="stage">
     <div class="wrap inner">
       <div class="top">
