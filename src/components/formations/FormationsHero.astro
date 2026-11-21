@@ -42,22 +42,22 @@ const paths = PATHS.map((p) => {
 });
 
 // ---- The training field (viewBox 1600×900).
-const C = { x: 930, y: 330 }; // centre of the exercise, between the copy and the card
+const C = { x: 900, y: 330 }; // centre of the exercise, between the copy and the card
 // Technique: lawnmower survey over the building footprint.
 const survey = (() => {
-  const x0 = C.x - 150;
-  const x1 = C.x + 150;
+  const x0 = C.x - 130;
+  const x1 = C.x + 130;
   const rows = 7;
   const y0 = C.y - 110;
   const step = 220 / (rows - 1);
-  let d = `M${x0 - 60} ${y0}`;
+  let d = `M${x0 - 50} ${y0}`;
   for (let i = 0; i < rows; i++) {
     const y = y0 + i * step;
     const [a, b] = i % 2 ? [x1, x0] : [x0, x1];
     d += ` L${a} ${y} L${b} ${y}`;
     if (i < rows - 1) d += ` Q${b + (i % 2 ? -40 : 40)} ${y + step / 2} ${b} ${y + step}`;
   }
-  return `${d} L${(i => (i % 2 ? x0 - 60 : x1 + 60))(rows - 1)} ${y0 + (rows - 1) * step}`;
+  return `${d} L${(i => (i % 2 ? x0 - 50 : x1 + 50))(rows - 1)} ${y0 + (rows - 1) * step}`;
 })();
 // Artistique: orbit around the point of interest (closed circle).
 const R = 140;
@@ -84,12 +84,12 @@ const cones = [
       </defs>
       <rect width="1600" height="900" fill="url(#mow)"></rect>
       <!-- Flight zone -->
-      <rect x="680" y="140" width="860" height="640" rx="28" class="zone"></rect>
-      <text x="698" y="128" class="field-label">ZONE DE VOL · 50 × 30 m</text>
+      <rect x="700" y="140" width="840" height="640" rx="28" class="zone"></rect>
+      <text x="718" y="128" class="field-label">ZONE DE VOL · 50 × 30 m</text>
       <!-- Distance marks -->
-      {[0, 1, 2, 3, 4].map((i) => <text x={680 + i * 215} y="805" class="field-label">{i * 10} m</text>)}
+      {[0, 1, 2, 3, 4].map((i) => <text x={700 + i * 210} y="805" class="field-label">{i * 10} m</text>)}
       <!-- Landing pad -->
-      <g class="pad" transform="translate(1040 600)">
+      <g class="pad" transform="translate(1000 600)">
         <circle r="46"></circle>
         <circle r="38" class="pad-inner"></circle>
         <text y="12" text-anchor="middle">H</text>
@@ -523,11 +523,12 @@ const cones = [
   }
 
   /* ============ Content ============ */
-  /* Wider than .wrap and aligned with the header's logo (client, 2026-11-21: "shift it left,
-     it looks busy"): the copy keeps to the left and the exercise flies in the clear middle. */
+  /* Wider than .wrap (client, 2026-11-21: "shift it left, it looks busy", then "a little
+     less, keep a small margin"): the copy keeps to the left and the exercise flies in the
+     clear middle. */
   .content {
-    max-width: 1800px;
-    padding-inline: clamp(16px, 3.2vw, 64px);
+    max-width: 1480px;
+    padding-inline: clamp(16px, 4.5vw, 80px);
     position: relative;
     z-index: 2;
     display: flex;
@@ -1220,7 +1221,7 @@ const cones = [
       shotsGroup.appendChild(c);
       shots.push({ at: l, el: c });
     }
-    const [cx, cy] = (hero.querySelector<SVGSVGElement>('[data-centre]')!.dataset.centre ?? '930 330').split(' ').map(Number);
+    const [cx, cy] = (hero.querySelector<SVGSVGElement>('[data-centre]')!.dataset.centre ?? '900 330').split(' ').map(Number);
     const centre = { x: cx, y: cy };
     const $ = (s: string) => hero.querySelector<HTMLElement>(s)!;
     const time = $('[data-time]');

@@ -149,10 +149,10 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   (2026-11-21, client: "we don't see that you can switch"): "Choisissez votre parcours", two
   large options (icon, name, sector), a block in the path's colour slides under the chosen one,
   ✓ on it and → on the other, which nudges with a ring three times until the first click
-  (hero data-touched). Same day ("shift it left, it looks busy"): the hero's content is wider
-  than .wrap (max 1800px, the header's padding, copy aligned with the logo), the exercise
-  centre moved right (C, passed to the script by data-centre) so it flies in the clear middle,
-  and the exercise is hidden below 1180px. DeckHero.astro
+  (hero data-touched). Same day ("shift it left, it looks busy", then "a little less, keep a
+  small margin"): the hero's content is wider than .wrap (max 1480px, padding up to 80px), the
+  exercise is narrower and centred in the clear middle (C, passed to the script by
+  data-centre), the flight zone starts after the copy, and the exercise is hidden below 1180px. DeckHero.astro
   is no longer used by any page.
   Below it (2026-10-28, client found the catalogue unclear): FormationGuide ("Par où
   commencer ?": the 3 steps Open/BAPD → Spécifique/CATS → spécialisation, LEVEL_GUIDE,
