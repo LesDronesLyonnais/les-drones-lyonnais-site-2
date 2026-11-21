@@ -153,7 +153,8 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   client's request, then redesigned the same day — "clearer, more modern, centred": centred
   segmented control with icons and a sliding black block, "Par réglementation" shown as
   "Selon votre permis", one sentence per tab, centred cards with the cheapest product's photo
-  or the class (C0…C6) itself, count; phones scroll the cards; click only; Pop help line +
+  or, in the permit tab, the official EU class label (ui/ClassLabel.astro: digit in a circle with
+  three lines each side, redrawn as SVG from the label the client sent on 2026-11-21), count; phones scroll the cards; click only; Pop help line +
   "Voir les N produits"; each card is a catalogue filter), ShopUses
   ("Que voulez-vous faire ?", 5 photo tiles), then one section per use with one FamilyBlock
   per drone family (photo, "Choisissez votre version" rows with class and TTC/HT price,

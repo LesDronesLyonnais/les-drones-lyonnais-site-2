@@ -3,14 +3,15 @@
 // site under the showcase; then "make it clearer, more modern, and centred").
 // Centred: a segmented control of five tabs, each with an icon (Grand public, Drones pro,
 // Selon votre permis, Capteurs, Accessoires), a sentence saying what the open tab holds,
-// then its categories as cards (the cheapest product's photo, or the class itself for the
-// permit tab), name, one line, product count. Phones: the cards scroll sideways. Tabs open
+// then its categories as cards (the cheapest product's photo, or the official EU class
+// label for the permit tab, ui/ClassLabel.astro), name, one line, product count. Phones: the cards scroll sideways. Tabs open
 // on click only; arrows, Home and End move between them. Cards filter the catalogue
 // (?filtre=). Without JavaScript every panel shows, one after the other.
 import { Image } from 'astro:assets';
 import popHead from '../../assets/pop/tete.webp';
 import { SHOP_MENU, forSale, productImages } from '../../data/catalog';
 import { productPhoto } from '../../lib/product-photo';
+import ClassLabel from '../ui/ClassLabel.astro';
 
 /** What each tab holds, in one sentence. */
 const INTRO: Record<string, string> = {
@@ -44,9 +45,10 @@ const tabs = await Promise.all(
           const items = forSale.filter(tile.match);
           // The cheapest product shows best what the category is (the drone alone, not a pack).
           const pick = [...items].sort((a, b) => a.priceTTC - b.priceTTC).find((p) => productImages(p).length > 0);
-          const badge = tab.id === 'reglementation' ? tile.label.replace(/^Classes? /, '').replace(' et ', ' · ') : null;
-          const photo = !badge && pick ? await productPhoto(pick, 1) : null;
-          return { ...tile, count: items.length, photo, badge };
+          // Permit tab: the class digits ("Classes C5 et C6" → 5 and 6) for the official labels.
+          const digits = tab.id === 'reglementation' ? [...tile.label.matchAll(/C(\d)/g)].map((m) => m[1]) : [];
+          const photo = !digits.length && pick ? await productPhoto(pick, 1) : null;
+          return { ...tile, count: items.length, photo, digits };
         }),
       )
     ).filter((t) => t.count > 0),
@@ -81,9 +83,11 @@ const tabs = await Promise.all(
             {tab.tiles.map((tile, k) => (
               <li class="card" style={{ '--k': k }}>
                 <a href={`/boutique/?filtre=${tile.id}#catalogue`} data-goto-filter={tile.id}>
-                  {tile.badge ? (
-                    <span class:list={['media badge', tile.badge.length > 3 && 'long']} aria-hidden="true">
-                      {tile.badge}
+                  {tile.digits.length ? (
+                    <span class:list={['media labels', tile.digits.length > 1 && 'two']} aria-hidden="true">
+                      {tile.digits.map((d) => (
+                        <ClassLabel digit={d} />
+                      ))}
                     </span>
                   ) : (
                     <span class="media">{tile.photo && <img src={tile.photo.src} srcset={tile.photo.srcset} sizes="(min-width: 1100px) 190px, (min-width: 768px) 30vw, 44vw" alt="" loading="lazy" decoding="async" />}</span>
@@ -281,32 +285,38 @@ const tabs = await Promise.all(
       box-shadow 300ms ease;
   }
   /* Product shots are on (nearly) white: multiplied over a light grey, their edges vanish. */
+  /* Centred with place-content too: Safari does not stretch the row of a square box. */
   .media {
+    position: relative;
     display: grid;
     place-items: center;
+    place-content: center;
     aspect-ratio: 1;
     overflow: hidden;
     background: #f6f6f4;
   }
   .media img {
+    position: absolute;
+    inset: 6%;
     width: 88%;
     height: 88%;
     object-fit: contain;
     mix-blend-mode: multiply;
     transition: transform 500ms var(--ease-out-strong);
   }
-  /* The permit tab shows the class itself. */
-  .badge {
-    color: #fff;
-    background: var(--color-ink);
-    font-size: clamp(2.4rem, 4vw, 3.2rem);
-    font-weight: 800;
-    font-stretch: 125%;
-    letter-spacing: -0.02em;
-    white-space: nowrap;
+  /* The permit tab shows the official class label (two for "C5 and C6"). */
+  .labels {
+    gap: 10%;
+    color: var(--color-ink);
   }
-  .badge.long {
-    font-size: clamp(1.7rem, 2.6vw, 2.2rem);
+  .labels :global(.class-label) {
+    display: block;
+    width: 84%;
+    margin-inline: auto;
+    transition: transform 500ms var(--ease-out-strong);
+  }
+  .labels.two :global(.class-label) {
+    width: 66%;
   }
   .body {
     display: flex;
@@ -342,7 +352,8 @@ const tabs = await Promise.all(
       transform: translateY(-4px);
       box-shadow: 0 18px 36px -18px rgb(0 0 0 / 0.28);
     }
-    .card a:hover .media img {
+    .card a:hover .media img,
+    .card a:hover .labels :global(.class-label) {
       transform: scale(1.06);
     }
     .card a:hover .count span {
@@ -413,6 +424,7 @@ const tabs = await Promise.all(
     .seg-ind,
     .card a,
     .media img,
+    .labels :global(.class-label),
     .count span {
       transition: none;
     }
