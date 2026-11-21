@@ -2,18 +2,19 @@
 // Point cloud under the mouse (lib/point-cloud.ts) behind a white section: put it as the
 // FIRST child of a section with `relative isolate`. All the layers of a page share one grid,
 // so the mesh runs on from one white section into the next; it fades out where a section
-// meets a dark one. Colours: the formation paths (green, gold when the artistic path is
-// chosen). Mouse only, nothing under reduced motion (the layer stays hidden).
+// meets a dark one. Colours: the formation paths, lightened (green, gold when the artistic
+// path is chosen). Mouse only, nothing under reduced motion (the layer stays hidden).
 ---
 
 <div class="cloud-layer" aria-hidden="true" data-cloud-layer><canvas></canvas></div>
 
 <style>
+  /* Lighter than the activity colours, so the effect stays discreet (client, 2026-11-21). */
   :global(:root) {
-    --cloud: var(--color-formations);
+    --cloud: #5a9a4c;
   }
   :global(html[data-famille='artistique']) {
-    --cloud: var(--color-gold-deep);
+    --cloud: var(--color-gold);
   }
   /* Behind the section's content, above its background; clipped to the section. */
   .cloud-layer {

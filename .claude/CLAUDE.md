@@ -155,8 +155,8 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   data-centre), the flight zone starts after the copy, and the exercise is hidden below 1180px.
   Mouse effect (2026-11-21, client liked the hover of les-formateurs-ia.fr's training pages):
   lib/point-cloud.ts + ui/PointCloudLayer.astro (first child of a `relative isolate` white
-  section) — faint survey points light up under the mouse in the path's colour (--cloud: green,
-  gold for artistique) and link into a triangulated mesh, a few become ground control targets,
+  section) — faint survey points light up under the mouse in the path's colour, lightened for discretion (--cloud: #5a9a4c,
+  --color-gold for artistique; client, 2026-11-21) and link into a triangulated mesh, a few become ground control targets,
   the mesh fades behind; a scan line passes once over the first white section. Client: not on
   the dark hero ("too busy"), on every white part of the page (FormationGuide, the technique
   FormationCatalog, Method with `cloud`), fading out (points shrink) where a white part meets a

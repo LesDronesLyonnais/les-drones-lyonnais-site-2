@@ -189,7 +189,7 @@ export function pointClouds(layers: HTMLElement[], opts: PointCloudOptions) {
     // A soft glow under the pointer, like the light of a sensor.
     if (near) {
       const g = ctx.createRadialGradient(near.x, near.y, 0, near.x, near.y, RADIUS * 1.3);
-      g.addColorStop(0, `rgb(${rgb} / ${0.07 * fadeAt(a, near.y)})`);
+      g.addColorStop(0, `rgb(${rgb} / ${0.05 * fadeAt(a, near.y)})`);
       g.addColorStop(1, `rgb(${rgb} / 0)`);
       ctx.globalAlpha = 1;
       ctx.fillStyle = g;
@@ -222,7 +222,7 @@ export function pointClouds(layers: HTMLElement[], opts: PointCloudOptions) {
       if (m < LINK) return;
       const f = Math.min(fadeAt(a, ys[p]), fadeAt(a, ys[q]));
       if (f <= 0.02) return;
-      ctx.globalAlpha = (m - LINK) * 0.7 * f;
+      ctx.globalAlpha = (m - LINK) * 0.55 * f;
       ctx.beginPath();
       ctx.moveTo(xs[p], ys[p]);
       ctx.lineTo(xs[q], ys[q]);
@@ -251,14 +251,14 @@ export function pointClouds(layers: HTMLElement[], opts: PointCloudOptions) {
         const f = fadeAt(a, ys[k]);
         if (f > 0.02) {
           ctx.fillStyle = colour;
-          ctx.globalAlpha = (0.1 + t * 0.85) * f;
+          ctx.globalAlpha = (0.08 + t * 0.7) * f;
           ctx.beginPath();
           ctx.arc(xs[k], ys[k], (0.8 + t * 2) * (0.4 + 0.6 * f), 0, Math.PI * 2);
           ctx.fill();
           if (target[k] && t > 0.35 && f > 0.6) {
             // Ground control target: a square with a cross.
             const s = 4 + t * 5;
-            ctx.globalAlpha = t * 0.85 * f;
+            ctx.globalAlpha = t * 0.5 * f;
             ctx.strokeStyle = ink;
             ctx.strokeRect(xs[k] - s, ys[k] - s, s * 2, s * 2);
             ctx.beginPath();
