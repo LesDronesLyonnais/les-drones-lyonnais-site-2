@@ -199,7 +199,7 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   `node scripts/import-product-pages.mjs` → src/data/product-pages.json and shown by
   components/shop/ProductStory.astro. "Quel permis ?" shows the official EU class label (ui/ClassLabel.astro, white on the black card,
   drawn in on reveal, since 2026-11-21; product photos and catalogue cards show the class the
-  same way, ui/ClassBadge.astro: one label per class on a white plate, "C0/C1" → two) and always the official
+  same way, ui/ClassBadge.astro: one label per class, white circle + thin white halo, no plate; "C0/C1" → two) and always the official
   text of the drone's class (PERMIS_BY_CLASS in data/regulation.ts, checked against DGAC /
   EASA on 2026-11-17; A1/A3 shown as a prerequisite of BAPD and CATS); the imported text is
   ignored and non-drones get no block. A drone with two classes (Matrice 5T: C2 or C6) uses

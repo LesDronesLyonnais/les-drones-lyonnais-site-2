@@ -1,8 +1,8 @@
 ---
 // A drone's class on its photos, as the official EU labels (client, 2026-11-21: "the
-// pictograms rather than the text"): "C2" → one label, "C0/C1" or "C2 / C6" → two, on a
-// white plate so they read on any photo. Screen readers and the tooltip get the words.
-// Size with --label-w (width of one label).
+// pictograms rather than the text"): "C2" → one label, "C0/C1" or "C2 / C6" → two, with
+// a white circle and halo so they read on any photo. Screen readers and the tooltip get
+// the words. Size with --label-w (width of one label).
 import ClassLabel from './ClassLabel.astro';
 
 interface Props {
@@ -20,17 +20,23 @@ const text = `Classe ${cls.replace(/\s*\/\s*/g, ' ou ')}`;
 </span>
 
 <style>
+  /* No plate (client, 2026-11-21: a white box shows on lifestyle photos): the circle is
+     white inside, as on the official label, and a thin white halo keeps the lines readable
+     on any photo. */
   .class-badge {
     display: inline-flex;
     align-items: center;
     gap: calc(var(--label-w, 60px) * 0.12);
-    padding: calc(var(--label-w, 60px) * 0.08) calc(var(--label-w, 60px) * 0.1);
     color: var(--color-ink);
-    background: #fff;
   }
   .class-badge :global(.class-label) {
     display: block;
     width: var(--label-w, 60px);
     height: auto;
+    overflow: visible;
+    filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 1px #fff);
+  }
+  .class-badge :global(.class-label circle) {
+    fill: #fff;
   }
 </style>
