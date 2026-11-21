@@ -1,15 +1,19 @@
 ---
 // Above the two catalogues: the three steps every path follows (Open → Spécifique →
 // spécialisation), in plain words, so each training card below reads as "step N".
-// Funding is said once here (the certifications are eligible for the CPF).
+// Funding is said once here (the certifications are eligible for the CPF), with the Qualiopi
+// logo and its mandatory category line (client, 2026-11-21; certificate in COMPANY, data/site.ts).
 import { Image } from 'astro:assets';
 import { LEVEL_GUIDE, type FormationLevel } from '../../data/formations';
 import bapd from '../../assets/pop/permis-bapd.webp';
 import cats from '../../assets/pop/permis-cats.webp';
 import formateur from '../../assets/pop/formateur.webp';
+import qualiopiLogo from '../../assets/brand/qualiopi.png';
+import { COMPANY } from '../../data/site';
 
 const POP = { open: bapd, specifique: cats, specialisation: formateur };
 const levels = Object.entries(LEVEL_GUIDE) as [FormationLevel, (typeof LEVEL_GUIDE)[FormationLevel]][];
+const qualiopi = COMPANY.training.qualiopi;
 ---
 
 <section class="guide section-pad bg-paper" aria-labelledby="guide-title">
@@ -39,9 +43,19 @@ const levels = Object.entries(LEVEL_GUIDE) as [FormationLevel, (typeof LEVEL_GUI
     </ol>
 
     <div class="cpf" data-reveal style={{ '--i': 4 }}>
-      <p>
-        <b>Étapes 1 et 2 finançables par le CPF.</b> Nos certifications RS6765 (technique) et RS6766 (artistique) sont reconnues par l’État.
-      </p>
+      {
+        qualiopi && (
+          <a href="/mentions-legales/#formation" class="q-logo" aria-label="Organisme certifié Qualiopi : voir le certificat">
+            <Image src={qualiopiLogo} alt="Qualiopi, processus certifié – République française" width={150} densities={[1, 2]} />
+          </a>
+        )
+      }
+      <div class="cpf-text">
+        <p>
+          <b>Étapes 1 et 2 finançables par le CPF.</b> Nos certifications RS6765 (technique) et RS6766 (artistique) sont reconnues par l’État.
+        </p>
+        {qualiopi && <p class="q-mention">Organisme certifié Qualiopi. La certification qualité a été délivrée au titre de la catégorie d’action suivante : {qualiopi.category}.</p>}
+      </div>
       <button type="button" class="ask" data-pop-open data-pop-ask="Financement CPF">Comment financer ? <span aria-hidden="true">→</span></button>
     </div>
   </div>
@@ -149,9 +163,39 @@ const levels = Object.entries(LEVEL_GUIDE) as [FormationLevel, (typeof LEVEL_GUI
     background: color-mix(in srgb, var(--color-formations) 10%, #fff);
     border-left: 3px solid var(--color-formations);
   }
+  .cpf-text {
+    flex: 1 1 320px;
+  }
   .cpf p {
     max-width: 70ch;
     color: var(--color-ink-soft);
+  }
+  .cpf .q-mention {
+    margin-top: 6px;
+    font-size: 14px;
+    color: var(--color-muted);
+  }
+  /* The logo is on white: a white plate keeps it clean on the tinted band. */
+  .q-logo {
+    flex-shrink: 0;
+    display: block;
+    padding: 8px 10px;
+    background: #fff;
+    transition: box-shadow 200ms ease;
+  }
+  .q-logo :global(img) {
+    display: block;
+    width: 150px;
+    height: auto;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .q-logo:hover {
+      box-shadow: 0 0 0 1px var(--color-formations);
+    }
+  }
+  .q-logo:focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 3px;
   }
   .cpf b {
     color: var(--color-ink);

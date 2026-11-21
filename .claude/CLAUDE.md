@@ -149,7 +149,8 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   is no longer used by any page.
   Below it (2026-10-28, client found the catalogue unclear): FormationGuide ("Par où
   commencer ?": the 3 steps Open/BAPD → Spécifique/CATS → spécialisation, LEVEL_GUIDE,
-  plus CPF funding), then each family as fact sheets (FormationCatalog: certifications
+  plus CPF funding, with the Qualiopi logo and category line since 2026-11-21, linking to the
+  certificate in /mentions-legales/#formation), then each family as fact sheets (FormationCatalog: certifications
   side by side, then specialisations; photo with step badge, objective, Durée and
   Prérequis on every card). Formations in src/data/formations.ts (`prerequisite` field).
 - `/boutique/` (reorganised 2026-11-20, client: "no dynamism at the top, a parade of products
@@ -316,7 +317,8 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   84 69 19979 69; capital 1 000 €, RCS Villefranche-Tarare, office and director confirmed by
   the client on 2026-11-21. Qualiopi: logo (assets/brand/qualiopi.png, cut from the
   certificate) + the mandatory category line ("actions de formation"), certificate
-  CW202520-4788 by BCI France, valid until 2027-03-04 — remove or renew the logo then. Sections: publisher, publication, host (Cloudflare), training body, IP and
+  CW202520-4788 by BCI France, valid until 2027-03-04 — remove or renew the logo then (also
+  on /formations-drone-a-lyon/; a reminder is scheduled for 2027-02-04). Sections: publisher, publication, host (Cloudflare), training body, IP and
   credits (IGN map), personal data (contact form, accounts, Brevo), cookies (session cookie
   only when signed in, local storage, host's security cookies; no analytics), liability,
   law. Table of contents sticky on large screens.
