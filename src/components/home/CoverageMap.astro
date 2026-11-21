@@ -1,0 +1,451 @@
+---
+// Where we work (client, 2026-11-21: the old map wasn't pretty — redone in the spirit of
+// les-formateurs-ia.fr; then "too many cities: we have three, Lyon, Paris and Marseille, and
+// we travel all over France"). A dark section, France as a field of dots, two views:
+// - "Nos villes" (default): the dots light up in gold around Lyon (our base, the gold
+//   square), Paris and Marseille; arcs leave Lyon for the two others, light travels on them.
+// - "Toute la France": every dot lights up, waves spread from the three cities.
+// Reduced motion: no waves, no travelling light, instant switch. Animations pause off screen.
+import Square from '../ui/Square.astro';
+import { FRANCE_MAP } from '../../data/france-map';
+import { FRANCE_OUTLINE } from '../../data/france-outline';
+
+const { width, height, lyon } = FRANCE_MAP;
+const find = (name: string) => FRANCE_MAP.cities.find((c) => c.name === name)!;
+const paris = find('Paris');
+const marseille = find('Marseille');
+// Lit area around each city (a glow, not a promised radius).
+const ZONE = 62;
+// A gentle arc from Lyon to a city.
+const route = (x: number, y: number, bend = 0.22) => {
+  const mx = (lyon.x + x) / 2;
+  const my = (lyon.y + y) / 2;
+  const dx = x - lyon.x;
+  const dy = y - lyon.y;
+  return `M${lyon.x} ${lyon.y}Q${(mx - dy * bend).toFixed(1)} ${(my + dx * bend).toFixed(1)} ${x} ${y}`;
+};
+const arcs = [route(paris.x, paris.y), route(marseille.x, marseille.y, -0.22)];
+const places = [
+  { ...lyon, name: 'Lyon' },
+  { ...paris, name: 'Paris' },
+  { ...marseille, name: 'Marseille' },
+];
+const VB = { x: -60, y: -40, w: width + 120, h: height + 80 };
+---
+
+<section aria-labelledby="coverage-title" class="coverage bg-ink text-white" data-coverage data-view="villes">
+  <div class="wrap grid">
+    <div class="intro" data-reveal>
+      <h2 id="coverage-title" class="display flex items-start gap-4 text-[clamp(2.1rem,4vw,3.4rem)]">
+        <Square color="var(--color-gold)" class="mt-[0.2em] size-3.5 shrink-0 md:size-4" />Lyon, Paris, Marseille et partout en France
+      </h2>
+      <p class="lead">
+        Basés à Lyon, nous sommes aussi présents à Paris et à Marseille, et nous nous déplaçons dans toute la France avec notre matériel professionnel. Notre connaissance des réglementations locales rend chaque tournage et chaque inspection fluides.
+      </p>
+      <div class="toggle" role="group" aria-label="Zone affichée sur la carte">
+        <span class="toggle-ind" aria-hidden="true"></span>
+        <button type="button" data-view="villes" aria-pressed="true">
+          <span class="t-name">Nos villes</span>
+          <span class="t-sub">Lyon, Paris, Marseille</span>
+        </button>
+        <button type="button" data-view="france" aria-pressed="false">
+          <span class="t-name">Toute la France</span>
+          <span class="t-sub">Nous nous déplaçons partout</span>
+        </button>
+      </div>
+      <ul class="places" aria-label="Nos villes">
+        <li><span class="p-name">Lyon</span><span class="p-note">notre base</span></li>
+        <li><span class="p-name">Paris</span></li>
+        <li><span class="p-name">Marseille</span></li>
+      </ul>
+    </div>
+
+    <figure class="map-wrap" data-reveal>
+      <svg viewBox={`${VB.x} ${VB.y} ${VB.w} ${VB.h}`} class="map" role="img" aria-labelledby="coverage-desc">
+        <desc id="coverage-desc">Carte de France : Les Drones Lyonnais, basés à Lyon et présents à Paris et à Marseille, se déplacent dans toute la France.</desc>
+        <defs>
+          <pattern id="cov-dots" width="14" height="14" patternUnits="userSpaceOnUse">
+            <circle cx="7" cy="7" r="1.9" fill="rgb(255 255 255 / 0.18)"></circle>
+          </pattern>
+          <pattern id="cov-dots-lit" width="14" height="14" patternUnits="userSpaceOnUse">
+            <circle cx="7" cy="7" r="2.5" fill="#fff"></circle>
+          </pattern>
+          <linearGradient id="cov-gold" x1="0" y1="0" x2={width} y2={height} gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#f6e3bd"></stop>
+            <stop offset=".4" stop-color="#d4ad72"></stop>
+            <stop offset=".7" stop-color="#af854a"></stop>
+            <stop offset="1" stop-color="#efd5a3"></stop>
+          </linearGradient>
+          <mask id="cov-lit" maskUnits="userSpaceOnUse" x={VB.x} y={VB.y} width={VB.w} height={VB.h}>
+            <path d={FRANCE_OUTLINE} fill="url(#cov-dots-lit)"></path>
+          </mask>
+          <clipPath id="cov-france"><path d={FRANCE_OUTLINE}></path></clipPath>
+          <clipPath id="cov-zones">
+            {places.map((p) => <circle cx={p.x} cy={p.y} r={ZONE} />)}
+          </clipPath>
+          <radialGradient id="cov-node">
+            <stop offset="0" stop-color="#fff"></stop>
+            <stop offset=".45" stop-color="#f3dcae"></stop>
+            <stop offset="1" stop-color="#af854a"></stop>
+          </radialGradient>
+          <radialGradient id="cov-halo">
+            <stop offset="0" stop-color="#d4ad72" stop-opacity=".5"></stop>
+            <stop offset="1" stop-color="#d4ad72" stop-opacity="0"></stop>
+          </radialGradient>
+        </defs>
+
+        <path d={FRANCE_OUTLINE} fill="url(#cov-dots)"></path>
+        <g class="lit lit-france">
+          <rect x={VB.x} y={VB.y} width={VB.w} height={VB.h} fill="url(#cov-gold)" mask="url(#cov-lit)"></rect>
+        </g>
+        <g class="lit lit-zones" clip-path="url(#cov-zones)">
+          <rect x={VB.x} y={VB.y} width={VB.w} height={VB.h} fill="url(#cov-gold)" mask="url(#cov-lit)"></rect>
+        </g>
+        <path d={FRANCE_OUTLINE} class="edge"></path>
+
+        <g class="waves" clip-path="url(#cov-france)">
+          {places.map((p, k) => [0, 1].map((i) => <circle cx={p.x} cy={p.y} r="560" class="wave" style={{ '--w': i * 3 + k }} />))}
+        </g>
+
+        <g class="zones">
+          {places.map((p, i) => <circle cx={p.x} cy={p.y} r={ZONE} class="zone" style={{ '--i': i }} />)}
+        </g>
+        <g class="routes">
+          {arcs.map((d, i) => <path d={d} pathLength="1" class="arc" style={{ '--i': i }} />)}
+        </g>
+        <g class="pulses" aria-hidden="true">
+          {
+            arcs.map((d, i) => (
+              <circle r="6" class="pulse">
+                <animateMotion dur="3.2s" begin={`-${(i * 1.6).toFixed(1)}s`} repeatCount="indefinite" path={d} keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1" />
+              </circle>
+            ))
+          }
+        </g>
+
+        <g class="node" transform={`translate(${paris.x} ${paris.y})`} style={{ '--i': 1 }}>
+          <circle r="34" fill="url(#cov-halo)"></circle>
+          <circle r="9" fill="url(#cov-node)"></circle>
+          <text class="label" x="-22" y="10" text-anchor="end">Paris</text>
+        </g>
+        <g class="node" transform={`translate(${marseille.x} ${marseille.y})`} style={{ '--i': 2 }}>
+          <circle r="34" fill="url(#cov-halo)"></circle>
+          <circle r="9" fill="url(#cov-node)"></circle>
+          <text class="label" x="22" y="10" text-anchor="start">Marseille</text>
+        </g>
+        <g class="node home-node" transform={`translate(${lyon.x} ${lyon.y})`} style={{ '--i': 0 }}>
+          <circle r="54" fill="url(#cov-halo)"></circle>
+          <circle class="home-pulse" r="18"></circle>
+          <rect class="home" x="-12" y="-12" width="24" height="24"></rect>
+          <text class="label lyon-label" x="30" y="13" text-anchor="start">Lyon</text>
+        </g>
+      </svg>
+      <figcaption class="credit hud-text">Contours : IGN Admin Express, Licence ouverte</figcaption>
+    </figure>
+  </div>
+</section>
+
+<style>
+  .coverage {
+    position: relative;
+    overflow: hidden;
+    padding-block: clamp(72px, 9vw, 128px);
+  }
+  .grid {
+    display: grid;
+    align-items: center;
+    gap: clamp(32px, 5vw, 72px);
+  }
+  @media (min-width: 1024px) {
+    .grid {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    }
+  }
+  .lead {
+    max-width: 46ch;
+    margin-top: 24px;
+    font-size: 1.125rem;
+    line-height: 1.6;
+    color: rgb(255 255 255 / 0.7);
+  }
+
+  /* ---------- Toggle: two options, a white block slides under the chosen one ---------- */
+  .toggle {
+    position: relative;
+    display: inline-grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    margin-top: 36px;
+    padding: 4px;
+    border: 1px solid rgb(255 255 255 / 0.22);
+  }
+  :global(html:not(.js)) .toggle {
+    display: none;
+  }
+  .toggle-ind {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    width: calc(50% - 4px);
+    background: #fff;
+    transition: transform 450ms var(--ease-out-strong);
+  }
+  .coverage[data-view='france'] .toggle-ind {
+    transform: translateX(100%);
+  }
+  .toggle button {
+    position: relative;
+    display: grid;
+    gap: 2px;
+    padding: 12px 22px;
+    text-align: left;
+    color: #fff;
+    cursor: pointer;
+    transition: color 300ms ease;
+  }
+  .toggle button[aria-pressed='true'] {
+    color: var(--color-ink);
+  }
+  .t-name {
+    font-weight: 700;
+    font-stretch: 112%;
+  }
+  .t-sub {
+    font-size: 13px;
+    opacity: 0.7;
+  }
+  .toggle button:focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 3px;
+  }
+  @media (max-width: 640px) {
+    .toggle {
+      display: grid;
+      width: 100%;
+    }
+    .toggle button {
+      padding: 10px 12px;
+    }
+    .t-name {
+      font-size: 15px;
+    }
+    .t-sub {
+      font-size: 12px;
+    }
+  }
+
+  /* The three cities, under the toggle. */
+  .places {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 28px;
+    margin-top: 28px;
+  }
+  .places li {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .places li::before {
+    content: '';
+    align-self: center;
+    width: 8px;
+    height: 8px;
+    background: var(--color-gold);
+  }
+  .p-name {
+    font-size: 1.15rem;
+    font-weight: 700;
+    font-stretch: 112%;
+  }
+  .p-note {
+    font-size: 14px;
+    color: rgb(255 255 255 / 0.55);
+  }
+
+  /* ---------- Map ---------- */
+  .map {
+    display: block;
+    width: 100%;
+    max-height: min(82svh, 760px);
+    margin-inline: auto;
+  }
+  .credit {
+    margin-top: 8px;
+    text-align: right;
+    color: rgb(255 255 255 / 0.4);
+  }
+  .lit,
+  .waves,
+  .zones,
+  .routes,
+  .pulses {
+    transition: opacity 700ms ease;
+  }
+  .lit-france,
+  .waves {
+    opacity: 0;
+  }
+  .coverage[data-view='france'] :is(.lit-france, .waves) {
+    opacity: 1;
+  }
+  .coverage[data-view='france'] :is(.lit-zones, .zones, .routes, .pulses) {
+    opacity: 0;
+  }
+  .edge {
+    fill: none;
+    stroke: rgb(255 255 255 / 0.22);
+    stroke-width: 1;
+    stroke-dasharray: 2 5;
+    vector-effect: non-scaling-stroke;
+  }
+  .zone {
+    fill: none;
+    stroke: rgb(212 173 114 / 0.55);
+    stroke-width: 1.2;
+    stroke-dasharray: 4 5;
+    vector-effect: non-scaling-stroke;
+  }
+  .wave {
+    fill: none;
+    stroke: #d4ad72;
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+    transform-box: fill-box;
+    transform-origin: center;
+    transform: scale(0);
+    opacity: 0;
+  }
+  .arc {
+    fill: none;
+    stroke: url(#cov-gold);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+    vector-effect: non-scaling-stroke;
+  }
+  .pulse {
+    fill: #fff;
+  }
+  .label {
+    font-size: 30px;
+    font-weight: 700;
+    fill: #fff;
+    paint-order: stroke;
+    stroke: #000;
+    stroke-width: 6px;
+    stroke-linejoin: round;
+  }
+  .lyon-label {
+    font-size: 38px;
+    font-weight: 800;
+    font-stretch: 118%;
+  }
+  /* Phones: the map is narrow, the labels grow in its units to stay readable. */
+  @media (max-width: 640px) {
+    .label {
+      font-size: 42px;
+    }
+    .lyon-label {
+      font-size: 50px;
+    }
+  }
+  .home {
+    fill: var(--color-gold);
+  }
+  .home-pulse {
+    fill: none;
+    stroke: #d4ad72;
+    stroke-width: 2;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .wave {
+      animation: wave 6s var(--ease-out-strong) infinite;
+      animation-delay: calc(var(--w) * 1s);
+    }
+    .home-pulse {
+      animation: home 2.4s var(--ease-out-strong) infinite;
+    }
+    .coverage:not([data-playing]) :is(.wave, .home-pulse) {
+      animation-play-state: paused;
+    }
+    /* First view: the arcs draw themselves from Lyon, the cities light up one by one. */
+    :global(.js) .map-wrap[data-reveal] .arc {
+      stroke-dashoffset: 1;
+      transition: stroke-dashoffset 1400ms var(--ease-out-strong);
+      transition-delay: calc(500ms + var(--i) * 200ms);
+    }
+    :global(.js) .map-wrap[data-reveal].is-in .arc {
+      stroke-dashoffset: 0;
+    }
+    :global(.js) .map-wrap[data-reveal] .node {
+      opacity: 0;
+      transition: opacity 600ms ease;
+      transition-delay: calc(200ms + var(--i) * 450ms);
+    }
+    :global(.js) .map-wrap[data-reveal].is-in .node {
+      opacity: 1;
+    }
+  }
+  @keyframes wave {
+    0% {
+      transform: scale(0);
+      opacity: 0.5;
+    }
+    70% {
+      opacity: 0.1;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 0;
+    }
+  }
+  @keyframes home {
+    from {
+      transform: scale(0.7);
+      opacity: 1;
+    }
+    to {
+      transform: scale(2.6);
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pulses,
+    .waves {
+      display: none;
+    }
+    .lit,
+    .zones,
+    .routes,
+    .toggle-ind,
+    .toggle button {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  // The two views; SMIL and CSS animations pause while the map is off screen.
+  const section = document.querySelector<HTMLElement>('[data-coverage]');
+  if (section) {
+    const svg = section.querySelector<SVGSVGElement>('.map')!;
+    const buttons = [...section.querySelectorAll<HTMLButtonElement>('button[data-view]')];
+    buttons.forEach((b) =>
+      b.addEventListener('click', () => {
+        section.dataset.view = b.dataset.view;
+        buttons.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      }),
+    );
+    new IntersectionObserver(([entry]) => {
+      section.toggleAttribute('data-playing', entry.isIntersecting);
+      if (entry.isIntersecting) svg.unpauseAnimations();
+      else svg.pauseAnimations();
+    }).observe(section);
+  }
+</script>
