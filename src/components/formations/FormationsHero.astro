@@ -42,7 +42,7 @@ const paths = PATHS.map((p) => {
 });
 
 // ---- The training field (viewBox 1600×900).
-const C = { x: 870, y: 330 }; // centre of the exercise, between the copy and the card
+const C = { x: 930, y: 330 }; // centre of the exercise, between the copy and the card
 // Technique: lawnmower survey over the building footprint.
 const survey = (() => {
   const x0 = C.x - 150;
@@ -63,17 +63,17 @@ const survey = (() => {
 const R = 140;
 const orbit = `M${C.x + R} ${C.y} A${R} ${R} 0 1 1 ${C.x - R} ${C.y} A${R} ${R} 0 1 1 ${C.x + R} ${C.y}`;
 const cones = [
-  [1120, 120],
+  [1160, 120],
   [1520, 560],
-  [1240, 820],
-  [760, 820],
+  [1280, 820],
+  [800, 820],
 ];
 ---
 
 <section class="f-hero" data-famille="technique" aria-labelledby="f-hero-title">
   <!-- ======== The training field ======== -->
   <div class="field" aria-hidden="true">
-    <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+    <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" data-centre={`${C.x} ${C.y}`}>
       <defs>
         <pattern id="mow" width="120" height="900" patternUnits="userSpaceOnUse">
           <rect width="60" height="900" fill="rgb(120 200 110 / 0.035)"></rect>
@@ -84,12 +84,12 @@ const cones = [
       </defs>
       <rect width="1600" height="900" fill="url(#mow)"></rect>
       <!-- Flight zone -->
-      <rect x="640" y="140" width="900" height="640" rx="28" class="zone"></rect>
-      <text x="658" y="128" class="field-label">ZONE DE VOL · 50 × 30 m</text>
+      <rect x="680" y="140" width="860" height="640" rx="28" class="zone"></rect>
+      <text x="698" y="128" class="field-label">ZONE DE VOL · 50 × 30 m</text>
       <!-- Distance marks -->
-      {[0, 1, 2, 3, 4].map((i) => <text x={640 + i * 225} y="805" class="field-label">{i * 10} m</text>)}
+      {[0, 1, 2, 3, 4].map((i) => <text x={680 + i * 215} y="805" class="field-label">{i * 10} m</text>)}
       <!-- Landing pad -->
-      <g class="pad" transform="translate(1000 640)">
+      <g class="pad" transform="translate(1040 600)">
         <circle r="46"></circle>
         <circle r="38" class="pad-inner"></circle>
         <text y="12" text-anchor="middle">H</text>
@@ -523,7 +523,11 @@ const cones = [
   }
 
   /* ============ Content ============ */
+  /* Wider than .wrap and aligned with the header's logo (client, 2026-11-21: "shift it left,
+     it looks busy"): the copy keeps to the left and the exercise flies in the clear middle. */
   .content {
+    max-width: 1800px;
+    padding-inline: clamp(16px, 3.2vw, 64px);
     position: relative;
     z-index: 2;
     display: flex;
@@ -1084,8 +1088,12 @@ const cones = [
   }
 
   /* ============ Smaller screens ============ */
+  /* Between the copy and the card there is no clear middle left: the field stays as a
+     texture, without the exercise (it would fly behind the picker). */
   @media (max-width: 1180px) {
-    .log {
+    .log,
+    .ex,
+    .drone {
       display: none;
     }
   }
@@ -1212,7 +1220,8 @@ const cones = [
       shotsGroup.appendChild(c);
       shots.push({ at: l, el: c });
     }
-    const centre = { x: 870, y: 330 };
+    const [cx, cy] = (hero.querySelector<SVGSVGElement>('[data-centre]')!.dataset.centre ?? '930 330').split(' ').map(Number);
+    const centre = { x: cx, y: cy };
     const $ = (s: string) => hero.querySelector<HTMLElement>(s)!;
     const time = $('[data-time]');
     const battery = $('[data-battery]');
