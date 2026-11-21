@@ -429,7 +429,7 @@ const waypoints = points.slice(1, -1);
     }
     .step {
       display: grid;
-      grid-template-columns: 110px 1fr;
+      grid-template-columns: 110px minmax(0, 1fr);
       grid-template-rows: auto auto 1fr;
       column-gap: 18px;
       padding: 16px 18px 16px 0;
@@ -464,6 +464,21 @@ const waypoints = points.slice(1, -1);
     }
     .method.is-live .step.is-current {
       transform: none;
+    }
+  }
+  /* Very small phones (320 px): a narrower Pop column, so long words ("Autorisations",
+     "Certification") stay inside the card. */
+  @media (max-width: 400px) {
+    .step {
+      grid-template-columns: 76px minmax(0, 1fr);
+      column-gap: 12px;
+    }
+    .pop {
+      height: 92px;
+    }
+    .step-title {
+      font-size: 1.12rem;
+      overflow-wrap: break-word;
     }
   }
 
