@@ -1,0 +1,280 @@
+---
+// Règlement intérieur of the training body (articles L.6352-3, L.6352-4 and R.6352-1 to
+// R.6352-15 of the Code du travail), from the client's document dated 19 February 2024
+// (sent on 2026-11-21). Its article 14 says it is available on the website. Transcribed as
+// it is, with obvious errors corrected and listed to the client: "Drone On Air" (another
+// company) → Les Drones Lyonnais, "Rhône-Alpes" → Auvergne-Rhône-Alpes, the funders' list
+// brought up to date (Fongecif, Pôle emploi → OPCO, France Travail), typos. Company facts
+// from COMPANY / SITE. Layout: components/legal/LegalPage.astro.
+import LegalPage, { type TocEntry } from '../components/legal/LegalPage.astro';
+import { COMPANY, SITE } from '../data/site';
+
+const UPDATED = '21 novembre 2026';
+const contact = `${SITE.address.street}, ${SITE.address.postalCode} ${SITE.address.locality}`;
+
+const SECTIONS = [
+  { id: 'preambule', title: 'Préambule', articles: [{ id: 'ri-1', n: 'Art. 1', title: 'Objet et champ d’application du règlement' }] },
+  {
+    id: 'hygiene',
+    title: 'Règles d’hygiène et de sécurité',
+    articles: [
+      { id: 'ri-2', n: 'Art. 2', title: 'Principes généraux' },
+      { id: 'ri-3', n: 'Art. 3', title: 'Consignes d’incendie' },
+      { id: 'ri-4', n: 'Art. 4', title: 'Boissons alcoolisées et drogues' },
+      { id: 'ri-5', n: 'Art. 5', title: 'Interdiction de fumer' },
+      { id: 'ri-6', n: 'Art. 6', title: 'Accident' },
+    ],
+  },
+  {
+    id: 'discipline',
+    title: 'Discipline générale',
+    articles: [
+      { id: 'ri-7', n: 'Art. 7', title: 'Assiduité du stagiaire en formation' },
+      { id: 'ri-8', n: 'Art. 8', title: 'Accès aux locaux de formation' },
+      { id: 'ri-9', n: 'Art. 9', title: 'Tenue' },
+      { id: 'ri-10', n: 'Art. 10', title: 'Comportement' },
+      { id: 'ri-11', n: 'Art. 11', title: 'Utilisation du matériel' },
+    ],
+  },
+  {
+    id: 'donnees',
+    title: 'Protection des données personnelles',
+    articles: [
+      { id: 'ri-12', n: 'Art. 12', title: 'Droits relatifs à la protection des données personnelles' },
+      { id: 'ri-13', n: 'Art. 13', title: 'Vidéosurveillance' },
+      { id: 'ri-14', n: 'Art. 14', title: 'Publicité du règlement' },
+    ],
+  },
+  {
+    id: 'sanctions',
+    title: 'Mesures disciplinaires',
+    articles: [
+      { id: 'ri-15', n: 'Art. 15', title: 'Sanctions disciplinaires' },
+      { id: 'ri-16', n: 'Art. 16', title: 'Garanties disciplinaires' },
+    ],
+  },
+  { id: 'representation', title: 'Représentation des stagiaires', articles: [{ id: 'ri-17', n: 'Art. 17', title: 'Représentation des stagiaires' }] },
+];
+const toc: TocEntry[] = SECTIONS.map((s) => ({ id: s.id, title: s.title, items: s.articles.map((a) => ({ id: a.id, title: a.title, n: a.n })) }));
+const art = (id: string) => SECTIONS.flatMap((s) => s.articles).find((a) => a.id === id)!;
+---
+
+<LegalPage
+  title="Règlement intérieur"
+  metaTitle="Règlement intérieur de l’organisme de formation | Les Drones Lyonnais"
+  description="Règlement intérieur applicable aux stagiaires des formations Les Drones Lyonnais : hygiène et sécurité, discipline, données personnelles, sanctions et représentation."
+  updated={UPDATED}
+  toc={toc}
+>
+  <div slot="intro" class="org">
+    <p>
+      <strong>{COMPANY.legalName}</strong>, organisme de formation – {contact} – <a href={SITE.phoneHref}>{SITE.phone}</a> – <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
+    </p>
+    <p>SIRET {COMPANY.siret} – Déclaration d’activité n° {COMPANY.training.nda} auprès du préfet de la région {COMPANY.training.region}</p>
+  </div>
+
+  <header class="part-head" id="preambule">
+    <p class="kicker hud-text">Préambule</p>
+    <h2>Préambule</h2>
+  </header>
+  <section id="ri-1">
+    <h3 class="art-title"><span class="hud-text n">{art('ri-1').n}</span>{art('ri-1').title}</h3>
+    <p>
+      Le présent règlement est établi conformément aux dispositions des articles L.6352-3 et L.6352-4 et R.6352-1 à R.6352-15 du Code du travail. Il s’applique à toutes les personnes participantes à une action de formation organisée par {COMPANY.legalName}. Un exemplaire est remis à chaque stagiaire.
+    </p>
+    <p>
+      Le règlement définit les règles d’hygiène et de sécurité, les règles générales et permanentes relatives à la discipline ainsi que la nature et l’échelle des sanctions pouvant être prises vis-à-vis des stagiaires qui y contreviennent et les garanties procédurales applicables lorsqu’une sanction est envisagée. Toute personne doit respecter les termes du présent règlement durant toute la durée de l’action de formation.
+    </p>
+  </section>
+
+  <header class="part-head" id="hygiene">
+    <p class="kicker hud-text">Section 1</p>
+    <h2>Règles d’hygiène et de sécurité</h2>
+  </header>
+  <section id="ri-2">
+    <h3 class="art-title"><span class="hud-text n">{art('ri-2').n}</span>{art('ri-2').title}</h3>
+    <p>La prévention des risques d’accidents et de maladies est impérative et exige de chacun le respect :</p>
+    <ul class="dots">
+      <li>des prescriptions applicables en matière d’hygiène et de sécurité sur les lieux de formation ;</li>
+      <li>de toute consigne imposée soit par la direction de l’organisme de formation soit par le constructeur ou le formateur s’agissant notamment de l’usage des matériels mis à disposition.</li>
+    </ul>
+    <p>
+      Chaque stagiaire doit ainsi veiller à sa sécurité personnelle et à celle des autres en respectant, en fonction de sa formation, les consignes générales et particulières en matière d’hygiène et de sécurité. S’il constate un dysfonctionnement du système de sécurité, il en avertit immédiatement la direction de l’organisme de formation. Le non-respect de ces consignes expose la personne à des sanctions disciplinaires.
+    </p>
+  </section>
+  <section id="ri-3">
+    <h3 class="art-title"><span class="hud-text n">{art('ri-3').n}</span>{art('ri-3').title}</h3>
+    <p>
+      En cas d’alerte, le stagiaire doit cesser toute activité de formation et suivre dans le calme les instructions du représentant habilité de l’organisme de formation ou des services de secours. Tout stagiaire témoin d’un début d’incendie doit immédiatement appeler les secours en composant le 18 à partir d’un téléphone fixe ou le 112 à partir d’un téléphone portable et alerter un représentant de l’organisme de formation.
+    </p>
+  </section>
+  <section id="ri-4">
+    <h3 class="art-title"><span class="hud-text n">{art('ri-4').n}</span>{art('ri-4').title}</h3>
+    <p>
+      L’introduction ou la consommation par les stagiaires de drogue ou de boissons alcoolisées dans les locaux est formellement interdite. Il est interdit aux stagiaires de pénétrer ou de séjourner en état d’ivresse ou sous l’emprise de drogue dans l’organisme de formation. Les stagiaires auront accès lors des pauses aux postes de distribution de boissons non alcoolisées.
+    </p>
+  </section>
+  <section id="ri-5">
+    <h3 class="art-title"><span class="hud-text n">{art('ri-5').n}</span>{art('ri-5').title}</h3>
+    <p>Il est formellement interdit de fumer dans les salles de formation (cigarette électronique incluse) et plus généralement dans l’enceinte de l’organisme de formation.</p>
+  </section>
+  <section id="ri-6">
+    <h3 class="art-title"><span class="hud-text n">{art('ri-6').n}</span>{art('ri-6').title}</h3>
+    <p>
+      Le stagiaire victime d’un accident – survenu pendant la formation ou pendant le temps de trajet entre le lieu de formation et son domicile ou son lieu de travail – ou le témoin de cet accident avertit immédiatement la direction de l’organisme de formation. Le responsable de l’organisme de formation entreprend les démarches appropriées en matière de soins et réalise la déclaration auprès de la caisse de Sécurité sociale compétente.
+    </p>
+  </section>
+
+  <header class="part-head" id="discipline">
+    <p class="kicker hud-text">Section 2</p>
+    <h2>Discipline générale</h2>
+  </header>
+  <section id="ri-7">
+    <h3 class="art-title"><span class="hud-text n">{art('ri-7').n}</span>{art('ri-7').title}</h3>
+    <h3>7.1 – Horaires de formation</h3>
+    <p>
+      Les stagiaires doivent se conformer aux horaires fixés et communiqués au préalable par l’organisme de formation. Le non-respect de ces horaires peut entraîner des sanctions. Sauf circonstances exceptionnelles, les stagiaires ne peuvent s’absenter pendant les heures de stage.
+    </p>
+    <h3>7.2 – Absences, retards ou départs anticipés</h3>
+    <p>
+      En cas d’absence, de retard ou de départ avant l’horaire prévu, les stagiaires doivent avertir l’organisme de formation et s’en justifier. L’organisme de formation informe immédiatement le financeur (employeur, administration, OPCO, France Travail, Région…) de cet événement. Tout événement non justifié par des circonstances particulières constitue une faute passible de sanctions disciplinaires. De plus, conformément à l’article R.6341-45 du Code du travail, le stagiaire dont la rémunération est prise en charge par les pouvoirs publics s’expose à une retenue sur sa rémunération de stage proportionnelle à la durée de l’absence.
+    </p>
+    <h3>7.3 – Formalisme attaché au suivi de la formation</h3>
+    <p>
+      Le stagiaire est tenu de renseigner la feuille d’émargement au fur et à mesure du déroulement de l’action. Il peut lui être demandé de réaliser un bilan de la formation. À l’issue de l’action de formation, il se voit remettre une attestation de fin de formation et une attestation de présence au stage à transmettre, selon le cas, à son employeur, à son administration ou à l’organisme qui finance l’action. Le stagiaire remet, dans les meilleurs délais, à l’organisme de formation les documents qu’il doit renseigner (demande de rémunération ou de prise en charge des frais liés à la formation, attestations d’inscription ou d’entrée en stage…).
+    </p>
+  </section>
+  <section id="ri-8">
+    <h3 class="art-title"><span class="hud-text n">{art('ri-8').n}</span>{art('ri-8').title}</h3>
+    <p>Sauf autorisation expresse de la direction de l’organisme de formation, le stagiaire ne peut :</p>
+    <ul class="dots">
+      <li>entrer ou demeurer dans les locaux de formation à d’autres fins que la formation ;</li>
+      <li>y introduire, faire introduire ou faciliter l’introduction de personnes étrangères à l’organisme ;</li>
+      <li>procéder, dans ces derniers, à la vente de biens ou de services ;</li>
+      <li>accéder à la salle « Atelier », où sont entreposés les drones, en l’absence d’un salarié de {COMPANY.legalName}.</li>
+    </ul>
+  </section>
+  <section id="ri-9">
+    <h3 class="art-title"><span class="hud-text n">{art('ri-9').n}</span>{art('ri-9').title}</h3>
+    <p>Le stagiaire est invité à se présenter à l’organisme en tenue vestimentaire correcte.</p>
+  </section>
+  <section id="ri-10">
+    <h3 class="art-title"><span class="hud-text n">{art('ri-10').n}</span>{art('ri-10').title}</h3>
+    <p>Il est demandé à tout stagiaire d’avoir un comportement garantissant le respect des règles élémentaires de savoir-vivre, de savoir-être en collectivité et le bon déroulement des formations.</p>
+  </section>
+  <section id="ri-11">
+    <h3 class="art-title"><span class="hud-text n">{art('ri-11').n}</span>{art('ri-11').title}</h3>
+    <p>
+      Sauf autorisation particulière de la direction de l’organisme de formation, l’usage du matériel de formation se fait sur les lieux de formation et est exclusivement réservé à l’activité de formation. L’utilisation du matériel à des fins personnelles est interdite. Le stagiaire est tenu de conserver en bon état le matériel qui lui est confié pour la formation. Il doit en faire un usage conforme à son objet et selon les règles délivrées par le formateur. Le stagiaire signale immédiatement au formateur toute anomalie du matériel.
+    </p>
+  </section>
+
+  <header class="part-head" id="donnees">
+    <p class="kicker hud-text">Section 3</p>
+    <h2>Protection des données personnelles</h2>
+  </header>
+  <section id="ri-12">
+    <h3 class="art-title"><span class="hud-text n">{art('ri-12').n}</span>{art('ri-12').title}</h3>
+    <p>Conformément au Règlement général sur la protection des données (RGPD) et aux autres règles applicables, vous bénéficiez des droits suivants :</p>
+    <ul class="dots">
+      <li>un droit d’accès à vos données personnelles (article 15 du RGPD) ;</li>
+      <li>un droit de rectification de vos données personnelles dans le cas où elles seraient inexactes (article 16) ;</li>
+      <li>un droit à l’effacement de vos données personnelles dans certains cas (article 17) ;</li>
+      <li>un droit à la limitation du traitement de vos données personnelles (article 18) et un droit à la portabilité de vos données (article 20), dans les limites fixées par la réglementation applicable ;</li>
+      <li>le droit de retirer votre consentement à tout moment lorsque le traitement est fondé sur celui-ci (article 13) ;</li>
+      <li>un droit d’opposition au traitement de vos données personnelles (article 21) ;</li>
+      <li>le droit de définir des directives relatives au sort de vos données personnelles après votre décès ; en l’absence de directives, vos héritiers peuvent exercer leurs droits sur vos données personnelles.</li>
+    </ul>
+    <p>
+      Ces droits peuvent être exercés, sur présentation d’une pièce d’identité, en nous contactant à l’adresse <a href={`mailto:${SITE.email}`}>{SITE.email}</a>. Vous avez également le droit d’introduire une réclamation auprès des autorités de contrôle, notamment la Commission nationale de l’informatique et des libertés (CNIL) : <a href="https://www.cnil.fr/fr/plaintes" rel="noopener">cnil.fr/fr/plaintes</a>.
+    </p>
+  </section>
+  <section id="ri-13">
+    <h3 class="art-title"><span class="hud-text n">{art('ri-13').n}</span>{art('ri-13').title}</h3>
+    <p>
+      La société précise par ailleurs que son établissement est placé sous vidéosurveillance pour des raisons de sécurité des biens et des personnes. Le stagiaire prend acte qu’il s’agirait, en cas de besoin, d’un moyen de preuve licite et recevable. Les images sont conservées pendant 3 semaines et peuvent être visionnées, en cas d’incident, par le personnel habilité de la société et par les forces de l’ordre. Ces données et leurs traitements sont régis par les dispositions légales et conventionnelles ci-dessus rappelées.
+    </p>
+  </section>
+  <section id="ri-14">
+    <h3 class="art-title"><span class="hud-text n">{art('ri-14').n}</span>{art('ri-14').title}</h3>
+    <p>Un exemplaire du présent règlement est affiché dans l’enceinte de l’organisme et consultable en ligne sur le site internet. Le stagiaire en prend connaissance lors de son inscription via son extranet.</p>
+  </section>
+
+  <header class="part-head" id="sanctions">
+    <p class="kicker hud-text">Section 4</p>
+    <h2>Mesures disciplinaires</h2>
+  </header>
+  <section id="ri-15">
+    <h3 class="art-title"><span class="hud-text n">{art('ri-15').n}</span>{art('ri-15').title}</h3>
+    <p>
+      Tout manquement du stagiaire à l’une des prescriptions du présent règlement intérieur pourra faire l’objet d’une sanction prononcée par le responsable de l’organisme de formation ou son représentant. Tout agissement considéré comme fautif pourra, en fonction de sa nature et de sa gravité, faire l’objet de l’une ou l’autre des sanctions suivantes :
+    </p>
+    <ul class="dots">
+      <li>rappel à l’ordre ;</li>
+      <li>avertissement écrit par le directeur de l’organisme de formation ou par son représentant ;</li>
+      <li>blâme ;</li>
+      <li>exclusion temporaire de la formation ;</li>
+      <li>exclusion définitive de la formation.</li>
+    </ul>
+    <p>Les amendes ou autres sanctions pécuniaires sont interdites. Le responsable de l’organisme de formation ou son représentant informe de la sanction prise :</p>
+    <ul class="dots">
+      <li>l’employeur du salarié stagiaire ou l’administration de l’agent stagiaire, uniquement quand la formation se réalise sur commande de l’employeur ou de l’administration ;</li>
+      <li>et/ou le financeur du stage.</li>
+    </ul>
+  </section>
+  <section id="ri-16">
+    <h3 class="art-title"><span class="hud-text n">{art('ri-16').n}</span>{art('ri-16').title}</h3>
+    <h3>16.1 – Information du stagiaire</h3>
+    <p>
+      Aucune sanction ne peut être infligée au stagiaire sans que celui-ci ait été informé au préalable des griefs retenus contre lui. Toutefois, lorsqu’un agissement, considéré comme fautif, a rendu indispensable une mesure conservatoire d’exclusion temporaire à effet immédiat, aucune sanction définitive relative à cet agissement ne peut être prise sans que le stagiaire ait été au préalable informé des griefs retenus contre lui et, éventuellement, que la procédure ci-après décrite ait été respectée.
+    </p>
+    <h3>16.2 – Convocation pour un entretien</h3>
+    <p>Lorsque le directeur de l’organisme de formation ou son représentant envisage de prendre une sanction, il est procédé de la manière suivante :</p>
+    <ul class="dots">
+      <li>il convoque le stagiaire, par lettre recommandée avec demande d’avis de réception ou remise à l’intéressé contre décharge, en lui indiquant l’objet de la convocation ;</li>
+      <li>la convocation indique également la date, l’heure et le lieu de l’entretien ainsi que la possibilité de se faire assister par une personne de son choix, stagiaire ou salarié de l’organisme de formation.</li>
+    </ul>
+    <h3>16.3 – Assistance possible pendant l’entretien</h3>
+    <p>
+      Au cours de l’entretien, le stagiaire peut se faire assister par une personne de son choix, notamment le délégué du stage. Le directeur ou son représentant indique le motif de la sanction envisagée et recueille les explications du stagiaire.
+    </p>
+    <h3>16.4 – Prononcé de la sanction</h3>
+    <p>
+      La sanction ne peut intervenir moins d’un jour franc ni plus de quinze jours après l’entretien. La sanction fait l’objet d’une notification écrite et motivée au stagiaire sous forme d’une lettre recommandée ou remise contre décharge.
+    </p>
+  </section>
+
+  <header class="part-head" id="representation">
+    <p class="kicker hud-text">Article 17</p>
+    <h2>Représentation des stagiaires</h2>
+  </header>
+  <section id="ri-17">
+    <h3 class="art-title"><span class="hud-text n">{art('ri-17').n}</span>{art('ri-17').title}</h3>
+    <p>
+      Lorsqu’un stage a une durée supérieure à 500 heures, il est procédé à l’élection d’un délégué titulaire et d’un délégué suppléant au scrutin uninominal à deux tours. Tous les stagiaires sont électeurs et éligibles, sauf les détenus admis à participer à une action de formation professionnelle.
+    </p>
+    <p>
+      L’organisme de formation organise le scrutin, qui a lieu pendant les heures de formation, au plus tôt 20 heures et au plus tard 40 heures après le début du stage. En cas d’impossibilité de désigner les représentants des stagiaires, l’organisme de formation dresse un procès-verbal de carence qu’il transmet au préfet de région territorialement compétent.
+    </p>
+    <p>
+      Les délégués sont élus pour la durée de la formation. Leurs fonctions prennent fin lorsqu’ils cessent, pour quelque cause que ce soit, de participer à la formation. Si le délégué titulaire et le délégué suppléant ont cessé leurs fonctions avant la fin de la session de formation, il est procédé à une nouvelle élection dans les conditions prévues aux articles R.6352-9 à R.6352-12.
+    </p>
+    <p>
+      Les représentants des stagiaires font toute suggestion pour améliorer le déroulement des stages et les conditions de vie des stagiaires dans l’organisme de formation. Ils présentent toutes les réclamations individuelles ou collectives relatives à ces matières, aux conditions d’hygiène et de sécurité et à l’application du règlement intérieur.
+    </p>
+  </section>
+</LegalPage>
+
+<style>
+  .org {
+    margin-top: 18px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--color-ink-soft);
+  }
+  .org a {
+    text-decoration: underline;
+    text-decoration-color: var(--color-gold);
+    text-underline-offset: 3px;
+  }
+</style>

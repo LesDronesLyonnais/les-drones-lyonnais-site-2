@@ -54,7 +54,7 @@ const qualiopi = COMPANY.training.qualiopi;
         <p>
           <b>Étapes 1 et 2 finançables par le CPF.</b> Nos certifications RS6765 (technique) et RS6766 (artistique) sont reconnues par l’État.
         </p>
-        {qualiopi && <p class="q-mention">Organisme certifié Qualiopi. La certification qualité a été délivrée au titre de la catégorie d’action suivante : {qualiopi.category}.</p>}
+        {qualiopi && <p class="q-mention">Organisme certifié Qualiopi. La certification qualité a été délivrée au titre de la catégorie d’action suivante : {qualiopi.category}. <a href="/reglement-interieur/">Règlement intérieur</a> · <a href="/conditions-generales/#formations">Conditions générales</a></p>}
       </div>
       <button type="button" class="ask" data-pop-open data-pop-ask="Financement CPF">Comment financer ? <span aria-hidden="true">→</span></button>
     </div>
@@ -174,6 +174,13 @@ const qualiopi = COMPANY.training.qualiopi;
     margin-top: 6px;
     font-size: 14px;
     color: var(--color-muted);
+  }
+  .cpf .q-mention a {
+    color: var(--color-ink);
+    text-decoration: underline;
+    text-decoration-color: var(--color-formations);
+    text-underline-offset: 3px;
+    white-space: nowrap;
   }
   /* The logo is on white: a white plate keeps it clean on the tinted band. */
   .q-logo {

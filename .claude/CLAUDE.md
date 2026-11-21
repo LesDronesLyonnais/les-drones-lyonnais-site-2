@@ -330,10 +330,16 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   shop, rental, services, trainings; then annex 1 = legal guarantee box D.211-2, annex 2 =
   withdrawal form R.221-1 — both typed from memory and secondary sources, Légifrance was
   behind a robot check: to verify word for word). Commercial figures in TERMS and the
-  cancellation lists (proposals to validate); MEDIATOR is null until the client picks one
-  (mandatory for consumers). Liability limits never apply to consumers where the law forbids
+  cancellation lists (proposals to validate); MEDIATOR = CM2C (chosen 2026-11-21 as the cheapest:
+  ~48 € / 3 years + 36 € per case; the client must sign up on cm2c.net). Rental deposit = the
+  value of the equipment (client, 2026-11-21), also said on rental product pages. Liability limits never apply to consumers where the law forbids
   it. Both legal pages use components/legal/LegalPage.astro (head, sticky contents, print
   button and print styles). To be reviewed by a lawyer.
+
+- /reglement-interieur/ (2026-11-21): the training body's internal rules (client's document of
+  2024-02-19, its art. 14 says it is online), transcribed with obvious errors fixed ("Drone On
+  Air" → LDL, Auvergne-Rhône-Alpes, OPCO / France Travail, typos). Linked from the CGV and the
+  Qualiopi band of /formations-drone-a-lyon/.
 
 Next: Stripe checkout (from the cart) and booking
 Worker, legal pages, redirect plan.

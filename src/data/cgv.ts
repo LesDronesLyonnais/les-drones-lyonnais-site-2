@@ -25,7 +25,14 @@ export const TERMS = {
 } as const;
 
 /** Consumer mediator (mandatory before selling to consumers): to be chosen by the client. */
-export const MEDIATOR: { name: string; address: string; url: string } | null = null;
+/** CM2C, chosen on 2026-11-21 as the cheapest general mediator (about 48 € for 3 years for
+ *  0–10 employees, 36 € per remote case, per third-party sources): the client must sign up
+ *  on cm2c.net; check the exact wording CM2C gives with the membership. */
+export const MEDIATOR: { name: string; address: string; url: string } | null = {
+  name: 'CM2C – Centre de la médiation de la consommation de conciliateurs de justice',
+  address: '14 rue Saint-Jean, 75017 Paris',
+  url: 'https://www.cm2c.net',
+};
 
 export interface CgvArticle {
   id: string;
@@ -265,7 +272,7 @@ ${ul([
         id: 'l-prix',
         title: 'Prix, paiement et dépôt de garantie',
         html: `<p>Le prix de la location dépend de sa durée, selon le tarif indiqué sur la fiche du Matériel ou dans la confirmation. Toute journée commencée est due. Le prix est payable à la confirmation de la réservation.</p>
-<p>Un <strong>dépôt de garantie</strong>, dont le montant est indiqué sur la fiche du Matériel ou dans la confirmation, est constitué avant la remise du Matériel, par autorisation de paiement sur carte bancaire, virement ou tout autre moyen accepté par ${LDL}. Il est libéré dans les ${T.depositReleaseDays} jours suivant la restitution complète et en bon état du Matériel, déduction faite des sommes dues par le Locataire.</p>
+<p>Un <strong>dépôt de garantie égal à la valeur du Matériel loué</strong> (valeur de remplacement à neuf, indiquée dans la confirmation de réservation) est constitué avant la remise du Matériel, par autorisation de paiement sur carte bancaire, virement ou tout autre moyen accepté par ${LDL}. Il est libéré dans les ${T.depositReleaseDays} jours suivant la restitution complète et en bon état du Matériel, déduction faite des sommes dues par le Locataire.</p>
 <p>Le Locataire autorise ${LDL} à enregistrer sa carte bancaire auprès de son prestataire de paiement et à prélever, après la restitution, les sommes dues au titre de la location (dommages, réparations, Matériel ou accessoires manquants, retard, frais de nettoyage), après lui avoir communiqué le détail et les justificatifs. <strong>Le dépôt de garantie ne constitue pas une limite de responsabilité</strong> : si les sommes dues dépassent son montant, le Locataire reste redevable de la différence.</p>`,
       },
       {
@@ -298,7 +305,7 @@ ${ul([
         id: 'l-risques',
         title: 'Garde du Matériel : casse, vol et perte',
         html: `${box(`<p>Le Locataire a la garde du Matériel dès sa remise et jusqu’à sa restitution. <strong>Le Matériel loué n’est pas assuré par ${LDL} pendant la location</strong> : notre assurance ne couvre ni la casse, ni le vol, ni la perte, ni les dommages subis par le Matériel ou causés par lui. Ces risques sont <strong>entièrement à la charge du Locataire</strong>, quelle qu’en soit la cause, y compris en cas de crash, de chute, d’immersion, de perte de liaison, de défaillance due à une erreur de pilotage ou à de mauvaises conditions de vol, de vol ou de perte.</p>`)}
-<p>En cas de dommage, le Locataire paie le coût de la remise en état par le fabricant ou un réparateur agréé, sur devis, frais de diagnostic et de transport compris. Si le Matériel est perdu, volé ou irréparable, ou si le coût de la réparation dépasse sa valeur, le Locataire paie sa <strong>valeur de remplacement</strong> : la valeur indiquée dans la confirmation de réservation ou, à défaut, le prix public TTC d’un Matériel neuf identique ou équivalent au jour du sinistre. Les accessoires manquants ou endommagés (batteries, hélices, câbles, valise, carte mémoire…) sont facturés au prix de remplacement.</p>
+<p>En cas de dommage, le Locataire paie le coût de la remise en état par le fabricant ou un réparateur agréé, sur devis, frais de diagnostic et de transport compris. Si le Matériel est perdu, volé ou irréparable, ou si le coût de la réparation dépasse sa valeur, le Locataire paie sa <strong>valeur de remplacement</strong> : la valeur indiquée dans la confirmation de réservation, qui correspond au dépôt de garantie, ou, à défaut, le prix public TTC d’un Matériel neuf identique ou équivalent au jour du sinistre. Les accessoires manquants ou endommagés (batteries, hélices, câbles, valise, carte mémoire…) sont facturés au prix de remplacement.</p>
 <p>Le Locataire informe ${LDL} sans délai de tout incident. En cas de vol, il dépose plainte et en remet une copie à ${LDL} dans les ${T.theftReportHours} heures ; en cas de perte, il en fait la déclaration dans le même délai. Le prix de la location reste dû pour toute la période réservée.</p>`,
       },
       {
@@ -409,7 +416,7 @@ ${ul([
       {
         id: 'f-inscription',
         title: 'Inscription et documents',
-        html: `<p>L’inscription est confirmée à la réception, selon le cas : de la convention de formation signée (financement par une entreprise ou un OPCO), du contrat de formation signé (Stagiaire qui finance lui-même sa formation, conformément aux articles L.6353-3 et suivants du Code du travail), ou de la validation de l’inscription sur la plateforme Mon Compte Formation (CPF). Le programme, les prérequis, la durée, les modalités d’évaluation et le règlement intérieur sont communiqués avant l’inscription.</p>
+        html: `<p>L’inscription est confirmée à la réception, selon le cas : de la convention de formation signée (financement par une entreprise ou un OPCO), du contrat de formation signé (Stagiaire qui finance lui-même sa formation, conformément aux articles L.6353-3 et suivants du Code du travail), ou de la validation de l’inscription sur la plateforme Mon Compte Formation (CPF). Le programme, les prérequis, la durée, les modalités d’évaluation et le <a href="/reglement-interieur/">règlement intérieur</a> sont communiqués avant l’inscription.</p>
 <p>Le Stagiaire certifie remplir les prérequis indiqués pour la formation choisie (notamment, pour les certifications de la catégorie Spécifique, l’attestation ou le certificat exigé au préalable).</p>`,
       },
       {
@@ -438,7 +445,7 @@ ${ul([
       {
         id: 'f-deroulement',
         title: 'Déroulement, assiduité et règlement intérieur',
-        html: `<p>Le Stagiaire suit la formation avec assiduité, signe les feuilles d’émargement ou se connecte aux modules en ligne selon les modalités prévues, et respecte le règlement intérieur, qui lui est remis avant la formation. Tout comportement mettant en danger la sécurité, ou contraire au règlement intérieur, peut entraîner l’exclusion du Stagiaire, la formation restant due.</p>`,
+        html: `<p>Le Stagiaire suit la formation avec assiduité, signe les feuilles d’émargement ou se connecte aux modules en ligne selon les modalités prévues, et respecte le <a href="/reglement-interieur/">règlement intérieur</a>, qui lui est remis avant la formation. Tout comportement mettant en danger la sécurité, ou contraire au règlement intérieur, peut entraîner une sanction pouvant aller jusqu’à l’exclusion, dans les conditions et selon la procédure prévues par ce règlement ; la formation déjà dispensée reste due.</p>`,
       },
       {
         id: 'f-pratique',

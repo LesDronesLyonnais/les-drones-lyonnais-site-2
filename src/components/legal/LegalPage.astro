@@ -4,7 +4,8 @@
 // level, or parts with their articles), sticky on large screens; the text. Print styles
 // keep only the text (header, footer, contents, Pop and cart hidden).
 // The page writes its content in the slot with: <section id> + <h2> (<span class="n">),
-// <h3>, <p>, <ul class="dots">, <dl class="facts">, <div class="box">.
+// <h3>, <p>, <ul class="dots">, <dl class="facts">, <div class="box">; or parts: <header
+// class="part-head"> + sections titled <h3 class="art-title"><span class="n">.
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Square from '../ui/Square.astro';
 
@@ -280,6 +281,22 @@ const { title, metaTitle, description, updated, toc } = Astro.props;
     font-weight: 700;
     font-stretch: 112%;
     line-height: 1.2;
+  }
+  /* Articles under a part (CGV, règlement intérieur): h3 titles numbered "Art. 1". */
+  .legal-content :global(h3.art-title) {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-top: 0;
+    font-size: clamp(1.2rem, 1.8vw, 1.5rem);
+    font-weight: 700;
+    font-stretch: 112%;
+    line-height: 1.25;
+  }
+  .legal-content :global(h3.art-title .n) {
+    flex-shrink: 0;
+    min-width: 3.6em;
+    color: var(--color-gold-deep);
   }
   .legal-content :global(h2 .n) {
     flex-shrink: 0;

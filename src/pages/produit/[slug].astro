@@ -259,6 +259,9 @@ const popAdvice = {
                   Demander la réservation
                 </button>
                 <p class="note">Nous confirmons la disponibilité et votre niveau de pilotage, puis vous envoyons le lien de paiement et la caution.</p>
+                <p class="note">
+                  Dépôt de garantie : la valeur du matériel{other ? <> (prix neuf : {formatPrice(other.priceTTC)} TTC)</> : ''}, libéré après le retour. Casse, vol et perte sont à la charge du locataire : voir nos <a href="/conditions-generales/#location">conditions de location</a>.
+                </p>
               </form>
             ) : (
               <div class="actions">
