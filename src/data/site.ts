@@ -42,6 +42,35 @@ export const ACTIVITIES: Record<ActivityId, Activity> = {
 
 export const NAV: Activity[] = [ACTIVITIES.prestations, ACTIVITIES.formations, ACTIVITIES.boutique, ACTIVITIES.location];
 
+/** Legal identity of the company, for the legal notice and the terms. From the public
+ *  company register (recherche-entreprises.api.gouv.fr, checked on 2026-11-21) — name,
+ *  form (5499 = SARL), SIREN / SIRET, registered office, APE code, manager, training body
+ *  number and Qualiopi — and from the legal notice of the current site (capital, 2022).
+ *  The capital and the RCS registry (Morancé → Villefranche-Tarare) are to be confirmed on
+ *  the Kbis. The registered office is not the office of the contact page (SITE.address). */
+export const COMPANY = {
+  legalName: 'Les Drones Lyonnais',
+  form: 'Société à responsabilité limitée (SARL)',
+  capital: '1 000 €',
+  siren: '894 357 755',
+  siret: '894 357 755 00012',
+  rcs: 'RCS Villefranche-Tarare 894 357 755',
+  vat: 'FR24 894 357 755',
+  ape: '59.11B – Production de films institutionnels et publicitaires',
+  headOffice: { street: '400 chemin de la Radissonne', postalCode: '69480', locality: 'Morancé' },
+  /** Manager (gérant), director of publication. */
+  director: 'Dylan Castano',
+  training: { nda: '84 69 19979 69', region: 'Auvergne-Rhône-Alpes', qualiopi: true },
+} as const;
+
+/** Host of the site (LCEN art. 6): name, address, phone. */
+export const HOST = {
+  name: 'Cloudflare, Inc.',
+  address: '101 Townsend Street, San Francisco, CA 94107, États-Unis',
+  phone: '+1 650 319 8930',
+  url: 'https://www.cloudflare.com',
+} as const;
+
 // Legal pages: not linked on the current site yet, to be created with the migration.
 export const LEGAL = [
   { label: 'Mentions légales', href: '/mentions-legales/' },

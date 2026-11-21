@@ -308,5 +308,16 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   tick, "Et maintenant ?" in two steps, the four activities. A pause button (data-motion)
   stops every animation; reduced motion = still Pop. ?activite= sets the second button.
 
+- /mentions-legales/ (2026-11-21), its WordPress URL: rewritten (the WordPress page dated from
+  2022: old host, a pre-production domain, repealed laws). Facts in COMPANY / HOST (data/
+  site.ts), from the public company register (recherche-entreprises.api.gouv.fr): SARL,
+  SIREN 894 357 755, registered office in Morancé (≠ the Limonest office of SITE.address),
+  APE 59.11B, manager Dylan Castano (director of publication), training body NDA
+  84 69 19979 69, Qualiopi. Capital (1 000 €, from the 2022 page) and RCS registry to confirm
+  on the Kbis. Sections: publisher, publication, host (Cloudflare), training body, IP and
+  credits (IGN map), personal data (contact form, accounts, Brevo), cookies (session cookie
+  only when signed in, local storage, host's security cookies; no analytics), liability,
+  law. Table of contents sticky on large screens.
+
 Next: Stripe checkout (from the cart) and booking
 Worker, legal pages, redirect plan.
