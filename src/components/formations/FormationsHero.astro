@@ -145,6 +145,8 @@ const cones = [
       </g>
     </svg>
     <div class="vignette"></div>
+    <!-- Point cloud under the mouse (lib/point-cloud.ts). -->
+    <canvas class="cloud" data-cloud></canvas>
   </div>
 
   <!-- ======== Flight log ======== -->
@@ -469,6 +471,13 @@ const cones = [
     fill: var(--green);
     opacity: 0.16;
     transition: fill 600ms ease;
+  }
+  .cloud {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
   }
   .vignette {
     position: absolute;
@@ -1148,12 +1157,22 @@ const cones = [
 </style>
 
 <script>
+  import { pointCloud } from '../../lib/point-cloud';
+
   type Famille = 'technique' | 'artistique';
   const hero = document.querySelector<HTMLElement>('.f-hero');
   if (hero) {
     const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
     const tabs = [...hero.querySelectorAll<HTMLButtonElement>('[data-tab]')];
     const card = hero.querySelector<HTMLElement>('[data-card]')!;
+
+    // ---- The ground lights up as a point cloud under the mouse, in the path's colour; a scan
+    // line passes once on arrival and on each change of path.
+    const accent = () => getComputedStyle(hero).getPropertyValue('--green');
+    const cloudCanvas = hero.querySelector<HTMLCanvasElement>('[data-cloud]');
+    const cloud = !still && fine && cloudCanvas ? pointCloud(hero, cloudCanvas, accent()) : null;
+    if (cloud) setTimeout(() => cloud.sweep(), 1100);
 
     // ---- Choice: tabs (radio group) and the card.
     const set = (f: Famille) => {
@@ -1165,6 +1184,8 @@ const cones = [
         t.setAttribute('aria-checked', String(on));
         t.tabIndex = on ? 0 : -1;
       });
+      cloud?.setColour(accent());
+      cloud?.sweep();
       restart();
     };
     tabs.forEach((t, i) => {
@@ -1180,7 +1201,7 @@ const cones = [
     card.addEventListener('click', () => set(hero.dataset.famille === 'artistique' ? 'technique' : 'artistique'));
 
     // Card tilt and sheen under the pointer.
-    if (!still && matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    if (!still && fine) {
       card.addEventListener('pointermove', (e) => {
         const r = card.getBoundingClientRect();
         const x = (e.clientX - r.left) / r.width;

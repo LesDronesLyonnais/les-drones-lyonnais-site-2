@@ -152,7 +152,12 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   (hero data-touched). Same day ("shift it left, it looks busy", then "a little less, keep a
   small margin"): the hero's content is wider than .wrap (max 1480px, padding up to 80px), the
   exercise is narrower and centred in the clear middle (C, passed to the script by
-  data-centre), the flight zone starts after the copy, and the exercise is hidden below 1180px. DeckHero.astro
+  data-centre), the flight zone starts after the copy, and the exercise is hidden below 1180px.
+  Mouse effect (2026-11-21, client liked the hover of les-formateurs-ia.fr's training pages):
+  lib/point-cloud.ts, a canvas over the field — survey points invisible at rest light up under
+  the mouse in the path's colour and link into a triangulated mesh, a few become ground control
+  targets, the mesh fades behind; a scan line passes on arrival and on each change of path.
+  Mouse only, nothing under reduced motion. DeckHero.astro
   is no longer used by any page.
   Below it (2026-10-28, client found the catalogue unclear): FormationGuide ("Par où
   commencer ?": the 3 steps Open/BAPD → Spécifique/CATS → spécialisation, LEVEL_GUIDE,
