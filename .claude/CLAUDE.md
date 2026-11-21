@@ -145,7 +145,11 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   photogrammetry survey grid over a building, photo triggers; Artistique: orbit around a
   point of interest), a flight log, and a 3D "path card" (front Technique / Dylan, back
   Artistique / Théo) that tilts with the pointer and flips on click or with the two tabs.
-  The chosen path's catalogue moves first; ?parcours=artistique opens it. DeckHero.astro
+  The chosen path's catalogue moves first; ?parcours=artistique opens it. Path picker
+  (2026-11-21, client: "we don't see that you can switch"): "Choisissez votre parcours", two
+  large options (icon, name, sector), a block in the path's colour slides under the chosen one,
+  ✓ on it and → on the other, which nudges with a ring three times until the first click
+  (hero data-touched). DeckHero.astro
   is no longer used by any page.
   Below it (2026-10-28, client found the catalogue unclear): FormationGuide ("Par où
   commencer ?": the 3 steps Open/BAPD → Spécifique/CATS → spécialisation, LEVEL_GUIDE,

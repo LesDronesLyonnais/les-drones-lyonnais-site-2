@@ -172,23 +172,50 @@ const cones = [
           Formations drone à Lyon
         </h1>
 
-        <div class="tabs" role="radiogroup" aria-label="Choisissez votre parcours">
-          {
-            paths.map((p, i) => (
-              <button type="button" role="radio" class="tab" data-tab={p.id} aria-checked={i === 0 ? 'true' : 'false'} tabindex={i === 0 ? 0 : -1}>
-                <span class="tab-dot" />
-                {p.label}
-              </button>
-            ))
-          }
+        <!-- Path picker (client, 2026-11-21: "we don't see that you can switch"): a question,
+             two large options with an icon and their sector, a block that slides under the
+             chosen one, ✓ / → on each, and a nudge on the other option until the first click. -->
+        <div class="picker">
+          <p class="picker-label hud-text" id="picker-label">Choisissez votre parcours</p>
+          <div class="picker-track" role="radiogroup" aria-labelledby="picker-label">
+            <span class="picker-thumb" aria-hidden="true" />
+            {
+              paths.map((p, i) => (
+                <button type="button" role="radio" class="tab" data-tab={p.id} aria-checked={i === 0 ? 'true' : 'false'} tabindex={i === 0 ? 0 : -1}>
+                  <svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    {p.id === 'technique' ? (
+                      <>
+                        <path d="M3.5 3.5h17v17h-17zM3.5 9.2h17M3.5 14.8h17M9.2 3.5v17M14.8 3.5v17" opacity=".45" />
+                        <path d="M6.3 6.3h11.4v5.6H6.3v5.8h11.4" />
+                      </>
+                    ) : (
+                      <>
+                        <rect x="2.5" y="10" width="12.5" height="9.5" />
+                        <path d="m15 13.2 6.5-3.2v9.5L15 16.3" />
+                        <circle cx="5.8" cy="6.3" r="2.6" />
+                        <circle cx="11.7" cy="6.3" r="2.6" />
+                      </>
+                    )}
+                  </svg>
+                  <span class="tab-text">
+                    <span class="tab-name">{p.label}</span>
+                    <span class="tab-sub">{p.info.tagline}</span>
+                  </span>
+                  <span class="tab-state" aria-hidden="true">
+                    <span class="on">✓</span>
+                    <span class="off">→</span>
+                  </span>
+                </button>
+              ))
+            }
+          </div>
+          <p class="picker-hint hud-text" aria-hidden="true">Deux parcours : cliquez pour passer de l’un à l’autre</p>
         </div>
 
         {
           paths.map((p) => (
             <div class="copy-state" data-for-famille={p.id}>
-              <p class="tagline">
-                {p.info.tagline} · <span>{p.info.certification}</span>
-              </p>
+              <p class="tagline">{p.info.certification}</p>
               <h2 class="title display">{p.info.title}</h2>
               <p class="text">{p.info.description}</p>
               <ol class="ladder" aria-label="Votre parcours">
@@ -530,61 +557,178 @@ const cones = [
     color: rgb(255 255 255 / 0.8);
   }
 
-  /* Tabs: two flight-school chips. */
-  .tabs {
-    display: inline-flex;
-    gap: 4px;
+  /* ---------- Path picker ---------- */
+  .picker {
     margin-top: clamp(12px, 2.4vh, 24px);
+    max-width: 520px;
+  }
+  .picker-label {
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.75);
+  }
+  .picker-track {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    margin-top: 8px;
     padding: 4px;
-    background: rgb(255 255 255 / 0.06);
-    border: 1px solid rgb(255 255 255 / 0.14);
+    /* Opaque enough to hide the flight path that passes behind it. */
+    background: rgb(10 16 13 / 0.78);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgb(255 255 255 / 0.18);
+  }
+  /* The coloured block slides under the chosen path. */
+  .picker-thumb {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    width: calc(50% - 6px);
+    background: var(--green);
+    transition:
+      transform 450ms var(--ease-out-strong),
+      background-color 600ms ease;
+  }
+  .f-hero[data-famille='artistique'] .picker-thumb {
+    transform: translateX(calc(100% + 4px));
   }
   .tab {
-    display: inline-flex;
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    gap: 10px;
-    padding: 10px 18px;
-    font-size: 16px;
+    gap: 12px;
+    padding: 12px 14px;
+    text-align: left;
+    color: #fff;
+    cursor: pointer;
+    transition:
+      color 250ms ease,
+      background-color 200ms ease;
+  }
+  .tab-icon {
+    width: 24px;
+    height: 24px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+  }
+  .tab-text {
+    display: grid;
+    gap: 2px;
+  }
+  .tab-name {
+    font-size: 17px;
     font-weight: 700;
     font-stretch: 112%;
-    color: rgb(255 255 255 / 0.6);
-    transition:
-      color 200ms ease,
-      background-color 300ms ease;
+    line-height: 1.1;
   }
-  .tab-dot {
-    width: 8px;
-    height: 8px;
-    background: rgb(255 255 255 / 0.3);
-    transition: background-color 300ms ease;
+  .tab-sub {
+    font-size: 13px;
+    line-height: 1.25;
+    opacity: 0.75;
+  }
+  .tab-state {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    font-size: 14px;
+    font-weight: 700;
+    border: 1.5px solid currentColor;
+  }
+  .tab-state .on {
+    display: none;
   }
   .tab[aria-checked='true'] {
     color: var(--color-ink);
-    background: var(--green);
   }
-  .tab[aria-checked='true'] .tab-dot {
+  .tab[aria-checked='true'] .tab-state {
+    color: var(--green);
     background: var(--color-ink);
+    border-color: var(--color-ink);
   }
-  .tab:hover {
-    color: #fff;
+  .tab[aria-checked='true'] .on {
+    display: block;
   }
-  .tab[aria-checked='true']:hover {
-    color: var(--color-ink);
+  .tab[aria-checked='true'] .off {
+    display: none;
+  }
+  .tab[aria-checked='false'] .tab-state {
+    border-color: rgb(255 255 255 / 0.5);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .tab[aria-checked='false']:hover {
+      background: rgb(255 255 255 / 0.08);
+    }
+    .tab[aria-checked='false']:hover .off {
+      transform: translateX(3px);
+    }
+  }
+  .tab .off {
+    display: block;
+    transition: transform 200ms var(--ease-out-strong);
   }
   .tab:focus-visible {
     outline: 2px solid var(--color-gold);
     outline-offset: 2px;
   }
+  .picker-hint {
+    margin-top: 8px;
+    color: rgb(255 255 255 / 0.55);
+  }
+  /* Until the first click, the other path calls for attention: its arrow nudges and a ring
+     pulses, three times. */
+  @media (prefers-reduced-motion: no-preference) {
+    .f-hero:not([data-touched]) .tab[aria-checked='false'] .off {
+      animation: nudge 1.4s ease-in-out 1.2s 3;
+    }
+    .f-hero:not([data-touched]) .tab[aria-checked='false']::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 1.5px solid var(--green);
+      opacity: 0;
+      pointer-events: none;
+      animation: ring 1.4s ease-out 1.2s 3;
+    }
+  }
+  @keyframes nudge {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    40% {
+      transform: translateX(5px);
+    }
+  }
+  @keyframes ring {
+    0% {
+      opacity: 0.9;
+      transform: scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.06, 1.18);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .picker-thumb,
+    .tab,
+    .tab .off {
+      transition: none;
+    }
+  }
 
+  /* The sector is in the picker; the line keeps the certification. */
   .tagline {
     margin-top: clamp(14px, 2.6vh, 26px);
     font-weight: 600;
     color: var(--green);
     transition: color 600ms ease;
-  }
-  .tagline span {
-    color: rgb(255 255 255 / 0.7);
-    font-weight: 500;
   }
   .title {
     margin-top: 8px;
@@ -965,12 +1109,22 @@ const cones = [
     }
   }
   @media (max-width: 640px) {
-    .tabs {
-      display: flex;
+    .picker {
+      max-width: none;
     }
     .tab {
-      flex: 1;
-      justify-content: center;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      padding: 10px;
+    }
+    .tab-icon {
+      display: none;
+    }
+    .tab-name {
+      font-size: 16px;
+    }
+    .tab-sub {
+      font-size: 12px;
     }
     .rung-items {
       font-size: 14px;
@@ -994,6 +1148,7 @@ const cones = [
 
     // ---- Choice: tabs (radio group) and the card.
     const set = (f: Famille) => {
+      hero.dataset.touched = '';
       hero.dataset.famille = f;
       document.documentElement.dataset.famille = f;
       tabs.forEach((t) => {
