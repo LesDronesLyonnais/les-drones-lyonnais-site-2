@@ -6,7 +6,8 @@
 // - "Ce qu'il faut savoir": a bento of feature cards (the first one large and dark), a light
 //   following the pointer;
 // - "Pour qui ?": audience cards that turn ink on hover;
-// - "Quel permis ?": the drone class in a ring, what it allows as a checklist, and the
+// - "Quel permis ?": the drone's official EU class label (drawn in on reveal), what it allows
+//   as a checklist, and the
 //   path to the certificate as steps, Pop holding the licence over it.
 // Each section only shows when the product has that content. Animations fire once on
 // reveal (lib/reveal.ts); with reduced motion everything is shown as it is.
@@ -15,6 +16,7 @@ import type { ImageMetadata } from 'astro';
 import Button from '../ui/Button.astro';
 import Square from '../ui/Square.astro';
 import PopAdvice from './PopAdvice.astro';
+import ClassLabel from '../ui/ClassLabel.astro';
 import type { PopPose } from '../ui/PopTip.astro';
 import type { Product, ProductPage } from '../../data/catalog';
 import { featureIcon } from '../../lib/feature-icon';
@@ -205,12 +207,9 @@ const permisOptions = permis ? [permis, ...(page.permisOr ? [page.permisOr] : []
             )}
             <div class:list={['permis-grid', i === 0 ? 'mt-12' : 'mt-0']}>
               <div class="permis-id" data-reveal>
-                <span class="class-ring">
-                  <svg viewBox="0 0 120 120" aria-hidden="true">
-                    <circle cx="60" cy="60" r="54" class="ring-track" />
-                    <circle cx="60" cy="60" r="54" class="ring-fill" pathLength="1" />
-                  </svg>
-                  <span class="permis-class">{p.cls}</span>
+                <span class="class-id">
+                  <ClassLabel digit={p.cls.replace(/^C/, '')} class="permis-label" />
+                  <span class="permis-class">Classe {p.cls}</span>
                 </span>
                 <ul class="permis-tags">
                   <li>Catégorie {cap(p.category)}</li>
@@ -685,36 +684,24 @@ const permisOptions = permis ? [permis, ...(page.permisOr ? [page.permisOr] : []
     background: var(--color-ink);
     border-color: var(--color-ink);
   }
-  .class-ring {
-    position: relative;
+  /* The official class label (white on the black card), its name under it in gold. */
+  .class-id {
     display: grid;
-    place-items: center;
-    width: clamp(130px, 14vw, 170px);
-    aspect-ratio: 1;
+    justify-items: center;
+    gap: 14px;
+    width: 100%;
+    max-width: 280px;
   }
-  .class-ring svg {
-    position: absolute;
-    inset: 0;
-    transform: rotate(-90deg);
-  }
-  .class-ring circle {
-    fill: none;
-    stroke-width: 6;
-  }
-  .ring-track {
-    stroke: rgb(255 255 255 / 0.1);
-  }
-  .ring-fill {
-    stroke: var(--color-gold);
-    stroke-linecap: round;
-    stroke-dasharray: 1;
-    stroke-dashoffset: 0;
+  .class-id :global(.permis-label) {
+    display: block;
+    width: 100%;
+    height: auto;
+    color: #fff;
   }
   .permis-class {
-    font-size: clamp(3rem, 6vw, 4.4rem);
-    font-weight: 800;
-    font-stretch: 125%;
-    line-height: 1;
+    font-size: 1.15rem;
+    font-weight: 700;
+    font-stretch: 112%;
     color: var(--color-gold);
   }
   .permis-tags {
@@ -829,12 +816,24 @@ const permisOptions = permis ? [permis, ...(page.permisOr ? [page.permisOr] : []
     color: var(--color-ink-soft);
   }
   @media (prefers-reduced-motion: no-preference) {
-    :global(.js) .permis-id[data-reveal] .ring-fill {
+    /* The label draws itself in: circle, then the lines, then the digit. */
+    :global(.js) .permis-id[data-reveal] :global(.permis-label :is(path, circle)) {
+      stroke-dasharray: 1;
       stroke-dashoffset: 1;
-      transition: stroke-dashoffset 1600ms var(--ease-out-strong) 300ms;
+      transition: stroke-dashoffset 1200ms var(--ease-out-strong) 300ms;
     }
-    :global(.js) .permis-id[data-reveal].is-in .ring-fill {
-      stroke-dashoffset: 0.12;
+    :global(.js) .permis-id[data-reveal] :global(.permis-label path) {
+      transition-delay: 700ms;
+    }
+    :global(.js) .permis-id[data-reveal] :global(.permis-label text) {
+      opacity: 0;
+      transition: opacity 500ms ease 900ms;
+    }
+    :global(.js) .permis-id[data-reveal].is-in :global(.permis-label :is(path, circle)) {
+      stroke-dashoffset: 0;
+    }
+    :global(.js) .permis-id[data-reveal].is-in :global(.permis-label text) {
+      opacity: 1;
     }
     :global(.js) .permis-need[data-reveal] .steps li {
       opacity: 0;

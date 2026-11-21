@@ -12,7 +12,8 @@ const { digit, class: className } = Astro.props;
 ---
 
 <svg viewBox="-132 -60 264 120" class:list={['class-label', className]} aria-hidden="true">
-  <path d="M-129 -13.5H-54M-114 0H-55.5M-98 13.5H-54M129 -13.5H54M114 0H55.5M98 13.5H54" fill="none" stroke="currentColor" stroke-width="4"></path>
-  <circle r="55.75" fill="none" stroke="currentColor" stroke-width="3.5"></circle>
+  <!-- Lines drawn from the circle outwards; pathLength lets a page draw the label in. -->
+  <path d="M-54 -13.5H-129M-55.5 0H-114M-54 13.5H-98M54 -13.5H129M55.5 0H114M54 13.5H98" fill="none" stroke="currentColor" stroke-width="4" pathLength="1"></path>
+  <circle r="55.75" fill="none" stroke="currentColor" stroke-width="3.5" pathLength="1" transform="rotate(-90)"></circle>
   <text y="28.6" text-anchor="middle" font-family="Arial, 'Helvetica Neue', Helvetica, 'Liberation Sans', sans-serif" font-size="80" font-weight="700" fill="currentColor">{digit}</text>
 </svg>
