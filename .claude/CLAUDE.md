@@ -348,5 +348,5 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   accounts 3 years — not automated yet, invoices must be kept 10 years), security, cookies,
   rights, CNIL, minors. Tables turn into cards on phones (LegalPage .table + data-label).
 
-Next: Stripe checkout (from the cart) and booking
-Worker, legal pages, redirect plan.
+Next: Stripe checkout (from the cart) and booking Worker, redirect plan, domain switch.
+Legal pages done on 2026-11-21 (mentions légales, CGV, privacy policy, internal rules).
