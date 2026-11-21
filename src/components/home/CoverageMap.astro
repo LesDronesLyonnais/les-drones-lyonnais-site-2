@@ -3,7 +3,8 @@
 // les-formateurs-ia.fr; then "too many cities: we have three, Lyon, Paris and Marseille, and
 // we travel all over France"). A dark section, France as a field of dots, two views:
 // - "Nos villes" (default): the dots light up in gold around Lyon (our base, the gold
-//   square), Paris and Marseille; arcs leave Lyon for the two others, light travels on them.
+//   square), Paris and Marseille; arcs leave Lyon for the two others, light travels on them
+//   both ways.
 // - "Toute la France": every dot lights up, waves spread from the three cities.
 // Reduced motion: no waves, no travelling light, instant switch. Animations pause off screen.
 import Square from '../ui/Square.astro';
@@ -65,7 +66,7 @@ const VB = { x: -60, y: -40, w: width + 120, h: height + 80 };
         <desc id="coverage-desc">Carte de France : Les Drones Lyonnais, basés à Lyon et présents à Paris et à Marseille, se déplacent dans toute la France.</desc>
         <defs>
           <pattern id="cov-dots" width="14" height="14" patternUnits="userSpaceOnUse">
-            <circle cx="7" cy="7" r="1.9" fill="rgb(255 255 255 / 0.18)"></circle>
+            <circle cx="7" cy="7" r="2.1" fill="rgb(255 255 255 / 0.34)"></circle>
           </pattern>
           <pattern id="cov-dots-lit" width="14" height="14" patternUnits="userSpaceOnUse">
             <circle cx="7" cy="7" r="2.5" fill="#fff"></circle>
@@ -115,11 +116,14 @@ const VB = { x: -60, y: -40, w: width + 120, h: height + 80 };
         </g>
         <g class="pulses" aria-hidden="true">
           {
-            arcs.map((d, i) => (
-              <circle r="6" class="pulse">
-                <animateMotion dur="3.2s" begin={`-${(i * 1.6).toFixed(1)}s`} repeatCount="indefinite" path={d} keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1" />
-              </circle>
-            ))
+            /* On each arc, one light leaves Lyon while another comes back, half a trip apart. */
+            arcs.flatMap((d, i) =>
+              ['0;1', '1;0'].map((points, k) => (
+                <circle r="6" class="pulse">
+                  <animateMotion dur="3.2s" begin={`-${(i * 0.8 + k * 1.6).toFixed(1)}s`} repeatCount="indefinite" path={d} keyPoints={points} keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1" />
+                </circle>
+              )),
+            )
           }
         </g>
 
@@ -295,7 +299,7 @@ const VB = { x: -60, y: -40, w: width + 120, h: height + 80 };
   }
   .edge {
     fill: none;
-    stroke: rgb(255 255 255 / 0.22);
+    stroke: rgb(255 255 255 / 0.32);
     stroke-width: 1;
     stroke-dasharray: 2 5;
     vector-effect: non-scaling-stroke;
