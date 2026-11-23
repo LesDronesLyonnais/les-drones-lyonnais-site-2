@@ -348,7 +348,9 @@ Skills: `ldl-art-direction` (identity), `seo-production`, `visual-qa`,
   withdrawal form R.221-1 — both typed from memory and secondary sources, Légifrance was
   behind a robot check: to verify word for word). Commercial figures in TERMS and the
   cancellation lists (validated by the client on 2026-11-21); MEDIATOR = CM2C (chosen 2026-11-21 as the cheapest:
-  ~48 € / 3 years + 36 € per case; the client must sign up on cm2c.net). Rental deposit = the
+  ~48 € / 3 years + 36 € per case). The client joined on 2026-11-23 (certificate: 49 rue de
+  Ponthieu, 75008 Paris, 01 89 47 00 14, membership until 2029-11-23 — renew before then);
+  shown in CGV art. « Réclamations et médiation » and in /mentions-legales/#mediation. Rental deposit = the
   value of the equipment (client, 2026-11-21), also said on rental product pages. Liability limits never apply to consumers where the law forbids
   it. Both legal pages use components/legal/LegalPage.astro (head, sticky contents, print
   button and print styles). To be reviewed by a lawyer.

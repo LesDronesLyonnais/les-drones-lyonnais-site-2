@@ -10,8 +10,9 @@ import { Image } from 'astro:assets';
 import LegalPage from '../components/legal/LegalPage.astro';
 import qualiopiLogo from '../assets/brand/qualiopi.png';
 import { COMPANY, HOST, SITE } from '../data/site';
+import { MEDIATOR } from '../data/cgv';
 
-const UPDATED = '21 novembre 2026';
+const UPDATED = '23 novembre 2026';
 const office = `${COMPANY.headOffice.street}, ${COMPANY.headOffice.postalCode} ${COMPANY.headOffice.locality}`;
 const contactAddress = `${SITE.address.street}, ${SITE.address.postalCode} ${SITE.address.locality}`;
 
@@ -24,6 +25,7 @@ const SECTIONS = [
   { id: 'donnees', title: 'Données personnelles' },
   { id: 'cookies', title: 'Cookies' },
   { id: 'responsabilite', title: 'Responsabilité et liens' },
+  ...(MEDIATOR ? [{ id: 'mediation', title: 'Médiation de la consommation' }] : []),
   { id: 'droit', title: 'Droit applicable' },
 ];
 const pad = (i: number) => String(i + 1).padStart(2, '0');
@@ -137,6 +139,24 @@ const num = (id: string) => pad(SECTIONS.findIndex((s) => s.id === id));
       Le site contient des liens vers d’autres sites (fabricants, administrations, réseaux sociaux). {COMPANY.legalName} n’en contrôle pas le contenu et ne saurait en être responsable.
     </p>
   </section>
+
+  {
+    MEDIATOR && (
+      <section id="mediation" aria-labelledby="mediation-title">
+        <h2 id="mediation-title"><span class="hud-text n">{num('mediation')}</span>Médiation de la consommation</h2>
+        <p>
+          Conformément aux articles L.612-1 et suivants du Code de la consommation, en cas de litige non résolu après une réclamation écrite auprès de nous, le consommateur peut recourir gratuitement au médiateur de la consommation dont nous relevons :
+        </p>
+        <dl class="facts">
+          <div><dt>Médiateur</dt><dd>{MEDIATOR.name}</dd></div>
+          <div><dt>Adresse</dt><dd>{MEDIATOR.address}</dd></div>
+          <div><dt>Téléphone</dt><dd>{MEDIATOR.phone}</dd></div>
+          <div><dt>Site</dt><dd><a href={MEDIATOR.url} rel="noopener">{MEDIATOR.url.replace('https://', '')}</a></dd></div>
+        </dl>
+        <p>Les conditions de la médiation sont précisées dans nos <a href="/conditions-generales/#reclamations">conditions générales</a>.</p>
+      </section>
+    )
+  }
 
   <section id="droit" aria-labelledby="droit-title">
     <h2 id="droit-title"><span class="hud-text n">{num('droit')}</span>Droit applicable</h2>

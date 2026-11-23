@@ -24,14 +24,17 @@ export const TERMS = {
   lateReturnNoticeHours: 48,
 } as const;
 
-/** Consumer mediator (mandatory before selling to consumers): to be chosen by the client. */
-/** CM2C, chosen on 2026-11-21 as the cheapest general mediator (about 48 € for 3 years for
- *  0–10 employees, 36 € per remote case, per third-party sources): the client must sign up
- *  on cm2c.net; check the exact wording CM2C gives with the membership. */
-export const MEDIATOR: { name: string; address: string; url: string } | null = {
-  name: 'CM2C – Centre de la médiation de la consommation de conciliateurs de justice',
-  address: '14 rue Saint-Jean, 75017 Paris',
+/** Consumer mediator (mandatory before selling to consumers, L.616-1 Code de la consommation).
+ *  CM2C, chosen on 2026-11-21 as the cheapest general mediator; the client joined on
+ *  2026-11-23 (membership certificate for SIRET 894 357 755 00012, 3 years, expires
+ *  2029-11-23: renew it before then or change these lines). Name, address, phone and site as
+ *  printed on the certificate. */
+export const MEDIATOR: { name: string; address: string; phone: string; url: string; until: string } | null = {
+  name: 'CM2C – Centre de la Médiation de la Consommation de Conciliateurs de justice',
+  address: '49 rue de Ponthieu, 75008 Paris',
+  phone: '01 89 47 00 14',
   url: 'https://www.cm2c.net',
+  until: '23 novembre 2029',
 };
 
 export interface CgvArticle {
@@ -167,7 +170,7 @@ ${box(`<p><strong>Consommateurs.</strong> Aucune stipulation des présentes ne l
 <p>Conformément aux articles L.612-1 et suivants du Code de la consommation, le Consommateur peut recourir gratuitement à un médiateur de la consommation en vue de la résolution amiable d’un litige, après avoir adressé une réclamation écrite à ${LDL} restée sans solution, et dans un délai d’un an à compter de cette réclamation.</p>
 ${
   MEDIATOR
-    ? `<p>Médiateur : <strong>${MEDIATOR.name}</strong>, ${MEDIATOR.address} – <a href="${MEDIATOR.url}" rel="noopener">${MEDIATOR.url.replace('https://', '')}</a>.</p>`
+    ? `<p>${LDL} adhère au service de médiation de la consommation <strong>${MEDIATOR.name}</strong>, ${MEDIATOR.address}, tél.&nbsp;${MEDIATOR.phone.replace(/ /g, '&nbsp;')}, <a href="${MEDIATOR.url}" rel="noopener">${MEDIATOR.url.replace('https://', '')}</a>. Le Consommateur peut saisir le médiateur sur son site internet ou par courrier à cette adresse.</p>`
     : `<p>Les coordonnées de notre médiateur de la consommation seront indiquées ici.</p>`
 }`,
       },

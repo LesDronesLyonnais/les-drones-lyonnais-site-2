@@ -7,7 +7,7 @@
 import LegalPage, { type TocEntry } from '../components/legal/LegalPage.astro';
 import { CGV_PARTS, LEGAL_GUARANTEE, WITHDRAWAL_FORM } from '../data/cgv';
 
-const UPDATED = '21 novembre 2026';
+const UPDATED = '23 novembre 2026';
 let n = 0;
 const parts = CGV_PARTS.map((p) => ({ ...p, articles: p.articles.map((a) => ({ ...a, n: `Art. ${++n}` })) }));
 const toc: TocEntry[] = [
